@@ -27,7 +27,15 @@ We’re simply counting all the rows in the `sales` table since each row represe
 </p>
 
 <p align="center">
-  <img src="erd.png" alt="Uptown Nasi Lemak ERD" width="350"/>
+  <img src="erd.png" alt="Uptown Nasi Lemak ERD" width="500"/>
+</p>
+
+<p align="center">
+  <img src="erd.png" alt="Uptown Nasi Lemak ERD" width="450"/>
+</p>
+
+<p align="center">
+  <img src="erd.png" alt="Uptown Nasi Lemak ERD" width="400"/>
 </p>
 
 *(or refer to the Entity Relationship (ER) diagram [here](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png))*
