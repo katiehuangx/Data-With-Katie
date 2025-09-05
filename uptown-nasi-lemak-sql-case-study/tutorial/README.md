@@ -20,9 +20,15 @@ We’re simply counting all the rows in the `sales` table since each row represe
 
 - **Step 1:** Identify the table where the data is from → `uptown_nasi_lemak.sales`. 
 
-![Uptown Nasi Lemak ERD](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png)
-
 ![alt text](erd.png)
+
+<p align="center">
+  <img src="erd.png" alt="Uptown Nasi Lemak ERD" width="550"/>
+</p>
+
+<p align="center">
+  <img src="erd.png" alt="Uptown Nasi Lemak ERD" width="350"/>
+</p>
 
 *(or refer to the Entity Relationship (ER) diagram [here](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png))*
 
