@@ -20,11 +20,14 @@ If you’d like to check your answers, solutions are available in:
 **1. How many total orders were made?**
 We’re simply counting all the rows in the `sales` table since each row represents one order. Give the result a meaningful column name like `sales_count` or `no_of_sales_orders`. 
 
-<details> <summary> Show solution 💡 </summary>
+<details> 
+<summary> Show solution 💡 *(psst, click on "Show solution 💡" to view the answer)* </summary>
+
 ```sql
 SELECT COUNT(*) AS sales_count
 FROM uptown_nasi_lemak.sales;
 ```
+
 </details>
 
 **2. What are the names of all menu items available?**
