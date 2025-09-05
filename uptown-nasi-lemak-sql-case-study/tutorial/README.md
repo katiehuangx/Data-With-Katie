@@ -12,9 +12,28 @@ If you’d like to check your answers, click the **▶️ Show solution 💡** t
 
 ---
 
-### 🌱 Beginner (Level 1–3)
+## 🌱 Beginner (Level 1–3)
 
 **1. How many total orders were made?**
+
+We’re simply counting all the rows in the `sales` table since each row represents one order. 
+
+- **Step 1:** Identify the table where the data is from → `uptown_nasi_lemak.sales`.
+- **Step 2:** Use `COUNT(*)` or `COUNT(order_id)` to count the rows. 
+- **Step 3:** Give the result a meaningful column name `AS sales_count`.
+
+<details> 
+<summary> ▶️ Show solution 💡 (click to expand) </summary>
+
+```sql
+SELECT COUNT(*) AS sales_count
+FROM uptown_nasi_lemak.sales;
+```
+✅ Expected result: 36
+</details>
+
+
+### 1. How many total orders were made?
 
 We’re simply counting all the rows in the `sales` table since each row represents one order. 
 
