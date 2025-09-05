@@ -8,7 +8,9 @@ The exercises are arranged in increasing difficulty. We'll start with basic quer
 
 Each question comes with a short explanation of the concept it teaches, so you can practice and build confidence step by step. 😉
 
-If you’d like to check your answers, click the **▶️ Show solution 💡** toggle under each question to expand the solution. 
+If you’d like to:
+- check your answers → click the **▶️ Show solution 💡** toggle under each question to expand the solution. 
+- practice on your own or add into your portfolio → use the questions_only.md and insert your own solutions.
 
 ---
 
@@ -20,29 +22,17 @@ We’re simply counting all the rows in the `sales` table since each row represe
 
 - **Step 1:** Identify the table where the data is from → `uptown_nasi_lemak.sales`. 
 
-![alt text](erd.png)
-
-<p align="left">
-  <img src="erd.png" alt="Uptown Nasi Lemak ERD" width="800"/>
-</p>
-
-<p align="left">
-  <img src="erd.png" alt="Uptown Nasi Lemak ERD" width="750"/>
-</p>
-
 <p align="left">
   <img src="erd.png" alt="Uptown Nasi Lemak ERD" width="700"/>
 </p>
 
-
-*(or refer to the Entity Relationship (ER) diagram [here](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png))*
+*(Link to Entity Relationship (ER) diagram: [here](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png))*
 
 - **Step 2:** Use `COUNT(*)` or `COUNT(order_id)` to count the rows. 
 - **Step 3:** Give the result a meaningful column name `AS sales_count`.
 
 <details> 
 <summary> ▶️ Show solution 💡 (click to expand) </summary>
-
 ```sql
 SELECT COUNT(*) AS sales_count
 FROM uptown_nasi_lemak.sales;
@@ -55,29 +45,34 @@ FROM uptown_nasi_lemak.sales;
 
 We want to list all the menu items sold. Since duplicates don’t add value here, we use `DISTINCT` so each food name shows only once.  
 
-- **Step 1:** Identify the table where the menu items are stored → `uptown_nasi_lemak.menu`.  
-- **Step 2:** Apply  the column that holds the item names → `food_name`.  
-- **Step 3:** Apply `DISTINCT` to remove duplicates.  
+- **Step 1:** Identify table where menu items are stored → `uptown_nasi_lemak.menu`.  
+- **Step 2:** Apply `DISTINCT` on `food_name` to remove duplicates.
 
 <details> 
-<summary> ▶️ Show solution 💡 (click to expand) </summary>
-
+<summary> ▶️ Show solution 💡</summary>
 ```sql
 SELECT DISTINCT food_name
 FROM uptown_nasi_lemak.menu;
-✅ Expected result: 12
+```
+✅ Expected result: 3 rows (Nasi Lemak Ayam Goreng, Nasi Lemak Sotong, Nasi Lemak Telur Mata)
 </details>
 
-**3. What is the total number of unique customers?**
 
-This teaches the difference between counting rows and counting unique values. Here we count distinct customer_ids to find the customer base size.
+### 3. What is the total number of unique customers?
 
-Give it a meaningful column name like “customers_count” or “no_of_customers”.
+We’re finding how many different customers placed an order. That means counting distinct `customer_id`s rather than rows.
 
+- **Step 1:** Identify table with customer IDs → `uptown_nasi_lemak.sales`.
+- **Step 2:** Use `COUNT(DISTINCT customer_id)` to count unique values.
+
+<details> 
+<summary> ▶️ Show solution 💡</summary>
 ```sql
-SELECT COUNT(DISTINCT customer_id) AS unique_customers_count
+SELECT COUNT(DISTINCT customer_id) AS customer_count
 FROM uptown_nasi_lemak.sales;
 ```
+✅ Expected result: 10
+</details>
 
 ---
 
