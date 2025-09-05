@@ -20,7 +20,7 @@ We’re simply counting all the rows in the `sales` table since each row represe
 
 - **Step 1:** Identify the table where the data is from → `uptown_nasi_lemak.sales`. 
 
-![Uptown Nasi Lemak ERD](assets/erd.png)
+![Uptown Nasi Lemak ERD](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png)
 
 (or refer to the Entity Relationship (ER) diagram [here](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png))
 - **Step 2:** Use `COUNT(*)` or `COUNT(order_id)` to count the rows. 
