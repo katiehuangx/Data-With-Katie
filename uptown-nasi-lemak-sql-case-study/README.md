@@ -1,6 +1,6 @@
 # Uptown Park Nasi Lemak
 
-Introduction
+## Introduction
 
 Aina is a huge fan of Malaysian comfort food especially nasi lemak. At the start of 2025, she decided to take a leap and opened her own small restaurant: **Uptown Park Nasi Lemak**, right in the heart of Damansara Uptown. The restaurant specializes in her top 3 favourite dishes:
 
@@ -10,7 +10,8 @@ Aina is a huge fan of Malaysian comfort food especially nasi lemak. At the start
 
 Aina now needs your help to better understand how her business is doing using the data she’s collected over the first few months of operation. Although her team has been recording basic data like sales and customer visits, they’re unsure how to turn that information into useful insights to improve the restaurant's performance.
 
-📌 *Problem Statement*
+### 📌Problem Statement
+
 Aina wants to use the data to answer some key questions about her customers especially around their visit patterns, spending habits, and which nasi lemak versions are most popular.
 
 Getting a clearer view of her customer base will help her deliver a more personalized experience to her regulars. She’s also considering expanding her loyalty card program, but wants to make sure it’s worth the investment.
