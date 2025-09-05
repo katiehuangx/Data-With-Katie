@@ -21,7 +21,7 @@ If you’d like to check your answers, solutions are available in:
 We’re simply counting all the rows in the `sales` table since each row represents one order. Give the result a meaningful column name like `sales_count` or `no_of_sales_orders`. 
 
 <details> 
-<summary> Show solution 💡 *(psst, click on "Show solution 💡" to view the answer)* </summary>
+<summary> ▶️ **Show solution!** 💡 (click on expand) </summary>
 
 ```sql
 SELECT COUNT(*) AS sales_count
