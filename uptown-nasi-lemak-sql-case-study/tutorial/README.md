@@ -1,28 +1,23 @@
 # Tutorial 
 
-This tutorial is designed as a gentle introduction to SQL using a fun, real-world dataset inspired by a local Malaysian restaurant, Uptown Nasi Lemak. 
+This tutorial is a gentle introduction to SQL using a fun, real-world dataset inspired by a local Malaysian favourite: *Village Park Nasi Lemak*. 
 
-*(I'm a Malaysian 🇲🇾 and I love Uptown Park's nasi lemak especially their fried chicken, or what we call "ayam goreng" in Malay.)*
+*(I'm Malaysian 🇲🇾 and I love Village Park's nasi lemak with crispy fried chicken or what we call "ayam goreng" in Malay.)*
 
-The exercises are arranged in increasing difficulty, starting from basic queries (counting rows, selecting unique values) and gradually moving towards more complex problems (joins, aggregations, window functions).
+The exercises are arranged in increasing difficulty. We'll start with basic queries (**counting rows, selecting unique values**) and gradually move into more advanced problems (**joins, aggregations, and window functions**). 
 
-Each question comes with a short explanation of the concept it teaches, so you can practice and build confidence step by step.
+Each question comes with a short explanation of the concept it teaches, so you can practice and build confidence step by step. 😉
 
-If you’d like to check your answers, solutions are available in:
+If you’d like to check your answers, click the **▶️ Show solution 💡** toggle under each question to expand the solution. 
 
-## How to Use This Repo
-
-- `README.md` → Questions + explanations + solutions (are hidden!) (practice without answers).  
-- `solutions.sql` → Raw SQL queries (copy & run in db-fiddle).   
-
-## 🌱 Beginner (Level 1–3)
+### 🌱 Beginner (Level 1–3)
 
 **1. How many total orders were made?**
 We’re simply counting all the rows in the `sales` table since each row represents one order. Give the result a meaningful column name like `sales_count` or `no_of_sales_orders`. 
 
 <details> 
-<summary> ▶️ **Show solution!** 💡 (click on expand) </summary>
-
+<summary> ▶️ Show solution 💡 (click to expand) </summary>
+<br>
 ```sql
 SELECT COUNT(*) AS sales_count
 FROM uptown_nasi_lemak.sales;
