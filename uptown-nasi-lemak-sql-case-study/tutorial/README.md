@@ -13,11 +13,12 @@ If you’d like to check your answers, click the **▶️ Show solution 💡** t
 ### 🌱 Beginner (Level 1–3)
 
 **1. How many total orders were made?**
+
 We’re simply counting all the rows in the `sales` table since each row represents one order. Give the result a meaningful column name like `sales_count` or `no_of_sales_orders`. 
 
 <details> 
 <summary> ▶️ Show solution 💡 (click to expand) </summary>
-<br>
+<br></br>
 ```sql
 SELECT COUNT(*) AS sales_count
 FROM uptown_nasi_lemak.sales;
@@ -26,6 +27,7 @@ FROM uptown_nasi_lemak.sales;
 </details>
 
 **2. What are the names of all menu items available?**
+
 Usually, when we’re asked “names of all menu items”, we want to avoid the duplicates so using `DISTINCT` ensures we’re only getting the **unique menu items**.
 
 ```sql
@@ -33,7 +35,8 @@ SELECT DISTINCT food_name
 FROM uptown_nasi_lemak.menu;
 ```
 
-3. What is the total number of unique customers?
+**3. What is the total number of unique customers?**
+
 This teaches the difference between counting rows and counting unique values. Here we count distinct customer_ids to find the customer base size.
 
 Give it a meaningful column name like “customers_count” or “no_of_customers”.
