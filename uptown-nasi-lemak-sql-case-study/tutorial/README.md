@@ -18,9 +18,9 @@ If you’d like to check your answers, click the **▶️ Show solution 💡** t
 
 We’re simply counting all the rows in the `sales` table since each row represents one order. 
 
-**Step 1:** Identify the table where the data is from → `uptown_nasi_lemak.sales`.
-**Step 2:** Use `COUNT(*)` or `COUNT(order_id)` to count the rows. 
-**Step 3:** Give the result a meaningful column name `AS sales_count`.
+- **Step 1:** Identify the table where the data is from → `uptown_nasi_lemak.sales`.
+- **Step 2:** Use `COUNT(*)` or `COUNT(order_id)` to count the rows. 
+- **Step 3:** Give the result a meaningful column name `AS sales_count`.
 
 <details> 
 <summary> ▶️ Show solution 💡 (click to expand) </summary>
@@ -29,7 +29,7 @@ We’re simply counting all the rows in the `sales` table since each row represe
 SELECT COUNT(*) AS sales_count
 FROM uptown_nasi_lemak.sales;
 ```
-
+✅ Expected result: 36
 </details>
 
 **2. What are the names of all menu items available?**
