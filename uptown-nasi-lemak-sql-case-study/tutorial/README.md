@@ -10,15 +10,21 @@ Each question comes with a short explanation of the concept it teaches, so you c
 
 If you’d like to check your answers, click the **▶️ Show solution 💡** toggle under each question to expand the solution. 
 
+---
+
 ### 🌱 Beginner (Level 1–3)
 
 **1. How many total orders were made?**
 
-We’re simply counting all the rows in the `sales` table since each row represents one order. Give the result a meaningful column name like `sales_count` or `no_of_sales_orders`. 
+We’re simply counting all the rows in the `sales` table since each row represents one order. 
+
+**Step 1:** Identify the table where the data is from → `uptown_nasi_lemak.sales`.
+**Step 2:** Use `COUNT(*)` or `COUNT(order_id)` to count the rows. 
+**Step 3:** Give the result a meaningful column name `AS sales_count`.
 
 <details> 
 <summary> ▶️ Show solution 💡 (click to expand) </summary>
-<br></br>
+
 ```sql
 SELECT COUNT(*) AS sales_count
 FROM uptown_nasi_lemak.sales;
@@ -46,6 +52,8 @@ SELECT COUNT(DISTINCT customer_id) AS unique_customers_count
 FROM uptown_nasi_lemak.sales;
 ```
 
+---
+
 🍜 Intermediate (Level 4–6)
 4. How many times was each dish ordered?
 Group by product_id or product_name and count the number of times each dish was ordered.
@@ -55,6 +63,8 @@ Join sales with menu, multiply quantity by price, and sum it.
 
 6. What is the total number of orders from each order channel?
 Join sales with order_channels and group by channel.
+
+---
 
 🔥 Advanced (Level 7–10)
 7. Which customer spent the most in total?
