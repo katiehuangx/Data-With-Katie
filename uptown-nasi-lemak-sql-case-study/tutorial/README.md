@@ -14,30 +14,15 @@ If you’d like to check your answers, click the **▶️ Show solution 💡** t
 
 ## 🌱 Beginner (Level 1–3)
 
-**1. How many total orders were made?**
-
-We’re simply counting all the rows in the `sales` table since each row represents one order. 
-
-- **Step 1:** Identify the table where the data is from → `uptown_nasi_lemak.sales`.
-- **Step 2:** Use `COUNT(*)` or `COUNT(order_id)` to count the rows. 
-- **Step 3:** Give the result a meaningful column name `AS sales_count`.
-
-<details> 
-<summary> ▶️ Show solution 💡 (click to expand) </summary>
-
-```sql
-SELECT COUNT(*) AS sales_count
-FROM uptown_nasi_lemak.sales;
-```
-✅ Expected result: 36
-</details>
-
-
 ### 1. How many total orders were made?
 
 We’re simply counting all the rows in the `sales` table since each row represents one order. 
 
-- **Step 1:** Identify the table where the data is from → `uptown_nasi_lemak.sales`.
+- **Step 1:** Identify the table where the data is from → `uptown_nasi_lemak.sales`. 
+
+![Uptown Nasi Lemak ERD](assets/erd.png)
+
+(or refer to the Entity Relationship (ER) diagram [here](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/ER%20Diagram.png))
 - **Step 2:** Use `COUNT(*)` or `COUNT(order_id)` to count the rows. 
 - **Step 3:** Give the result a meaningful column name `AS sales_count`.
 
@@ -51,14 +36,23 @@ FROM uptown_nasi_lemak.sales;
 ✅ Expected result: 36
 </details>
 
-**2. What are the names of all menu items available?**
 
-Usually, when we’re asked “names of all menu items”, we want to avoid the duplicates so using `DISTINCT` ensures we’re only getting the **unique menu items**.
+### 2. What are the names of all menu items available?
+
+We want to list all the menu items sold. Since duplicates don’t add value here, we use `DISTINCT` so each food name shows only once.  
+
+- **Step 1:** Identify the table where the menu items are stored → `uptown_nasi_lemak.menu`.  
+- **Step 2:** Apply  the column that holds the item names → `food_name`.  
+- **Step 3:** Apply `DISTINCT` to remove duplicates.  
+
+<details> 
+<summary> ▶️ Show solution 💡 (click to expand) </summary>
 
 ```sql
 SELECT DISTINCT food_name
 FROM uptown_nasi_lemak.menu;
-```
+✅ Expected result: 12
+</details>
 
 **3. What is the total number of unique customers?**
 
