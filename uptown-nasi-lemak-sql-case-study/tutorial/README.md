@@ -1,10 +1,10 @@
-# Tutorial 
+# 📝 Tutorial 
 
-This tutorial is a gentle introduction to SQL using a fun, real-world dataset inspired by a local Malaysian favourite: *Village Park Nasi Lemak*. 
+This tutorial is an introduction to SQL using a fun dataset inspired by a local Malaysian favourite: *Village Park Nasi Lemak 🍚🌶️🐔*. 
 
-*(I'm Malaysian 🇲🇾 and I love Village Park's nasi lemak with crispy fried chicken or what we call "ayam goreng" in Malay.)*
+*(I'm Malaysian 🇲🇾 and I love Village Park's nasi lemak with crispy fried chicken 🍗 or what we call "ayam goreng" in Malay.)*
 
-The exercises are arranged in increasing difficulty. We'll start with basic queries (**counting rows, selecting unique values**) and gradually move into more advanced problems (**joins, aggregations, and window functions**). 
+The tutorial questions are arranged in increasing difficulty ⬆️. We'll start with basics (**counting rows, selecting unique values and summing totals**) and gradually move into more advanced concepts (**joins, HAVING and CTEs**). 
 
 Each question comes with a short explanation of the concept it teaches, so you can practice and build confidence step by step. 😉
 
@@ -288,9 +288,10 @@ ORDER BY avg_order_value DESC;
 ### 10. Which customer used all 3 order channels?
 
 💡 Tip: Identifying multi-channel customers is useful in loyalty marketing — these are engaged customers who interact across platforms and are more likely to be brand advocates.
-Step 1: Select customer_id and channel_id from sales.
-Step 2: Use COUNT(DISTINCT channel_id) for each customer.
-Step 3: Filter results where the count = 3.
+
+- **Step 1:** Select `customer_id` and `channel_id` from sales.
+- **Step 2:** Use `COUNT(DISTINCT channel_id)` for each customer.
+- **Step 3:** Filter results where the count = 3.
 
 <details> 
 <summary> ▶️ Show solution 💡</summary>
@@ -314,6 +315,8 @@ HAVING COUNT(DISTINCT channel_id) = 3;
 | H           | 3                     |
 </details>
 
-Good job! You've completed the tutorials. Give yourself a pat on the back.
+---
 
-Let's move on to the real thing: the Assignment!
+Good job! You've completed the tutorials. Give yourself a pat on the back. 🎉
+
+Now it’s time to put your skills to the test with the Assignment!
