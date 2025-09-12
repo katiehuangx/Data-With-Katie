@@ -41,6 +41,7 @@ FROM uptown_nasi_lemak.sales;
 ```
 
 ✅ Expected result: 36
+
 </details>
 
 
