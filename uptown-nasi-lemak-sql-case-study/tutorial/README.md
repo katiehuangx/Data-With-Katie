@@ -30,6 +30,8 @@ We’re simply counting all the rows in the `sales` table since each row represe
 - **Step 2:** Use `COUNT(*)` or `COUNT(order_id)` to count the rows. 
 - **Step 3:** Give the result a meaningful column name `AS sales_count`.
 
+💡 **Key Takeaway:** Overall **sales volume** is one of the first metrics leadership looks at to measure store performance at a glance.
+
 <details> 
 <summary> ▶️ Show solution 💡 (click to expand) </summary>
 
@@ -45,6 +47,8 @@ FROM uptown_nasi_lemak.sales;
 ### 2. What are the names of all menu items available?
 
 We want to list all the menu items sold. Since duplicates don’t add value here, we use `DISTINCT` so each food name shows only once.  
+
+💡 **Why it matters:** Clean, de-duplicated lists are critical when **sharing data with non-technical teams** like Marketing or Ops, who expect to see **business-friendly labels** instead of IDs.
 
 - **Step 1:** Identify table where menu items are stored → `uptown_nasi_lemak.menu`.  
 - **Step 2:** Apply `DISTINCT` on `food_name` to remove duplicates.
@@ -90,9 +94,9 @@ FROM uptown_nasi_lemak.sales;
 ## 🍜 Intermediate (Level 4–6)
 
 ### 4. How many times was each dish ordered?  
-We want to see the popularity of each menu item. To do that, we group by dish name and count how many times it was ordered.  
+We want to see the popularity of each menu item. 
 
-💡 **Tip:** It might feel easier to group by `food_id` and just output IDs. But in real-world reporting, IDs aren’t meaningful to business users. Showing the actual **dish names** makes the output clearer and more useful.  
+📌 **Business Note:** It might feel easier to group by `food_id` and just output IDs, but in real-world reporting, IDs aren’t meaningful to business users. Showing the **actual dish names** makes the output presentation-ready, clearer, and more useful when sharing results with management.
 
 - **Step 1:** Identify the tables needed → `uptown_nasi_lemak.sales` and `uptown_nasi_lemak.menu`.  
 - **Step 2:** Join them on `food_id` to match orders with dish names.  
@@ -123,10 +127,14 @@ ORDER BY no_of_dish_ordered ASC;
 </details>
 
 ### 5. What is the total revenue made by the restaurant?
-Join sales with menu and sum the price.
+
+📌 **Business Note:** Revenue tracking is the foundation of every financial report and is typically the first metric reviewed in monthly P&Ls.
+
+- **Step 1:** Join `sales` with `menu` using `food_id` to get the price of each item sold.
+- **Step 2:** Use `SUM(menu.price)` to add up the revenue from all rows.
 
 <details> 
-<summary> ▶️ Show solution 💡</summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
 SELECT SUM(menu.price) AS revenue
@@ -135,12 +143,21 @@ INNER JOIN uptown_nasi_lemak.menu AS menu
 	ON sales.food_id = menu.food_id;
 ```
 
-✅ Expected result: 10
+✅ Expected result:
+| revenue |
+| ------- |
+| 416     |
 </details>
 
 ### 6. What is the total number of orders from each order channel? 
 
-Join sales with order_channels and group by channel.
+We want to know how many orders came from Dine-In, Takeaway, and GrabFood. Sort results by ascending order of the number of orders.
+
+- **Step 1:** Join `sales` with `order_channels` using `channel_id`.
+- **Step 2:** Count how many `order_id` values appear for each channel.
+- **Step 3:** Group by `channel_name` and sort results.
+
+📌 **Business Note:** Splitting by channel helps businesses evaluate the ROI of delivery partnerships and optimize staff allocation across delivery, dine-in vs. takeaway.
 
 <details> 
 <summary> ▶️ Show solution 💡</summary>
@@ -162,7 +179,6 @@ ORDER BY no_of_orders ASC;
 | GrabFood     | 10           |
 | Takeaway     | 11           |
 | Dine-In      | 15           |
-
 </details>
 
 ---
@@ -170,12 +186,15 @@ ORDER BY no_of_orders ASC;
 ## 🔥 Advanced (Level 7–10)
 
 ### 7. Which customer spent the most in total?
-Output the customer ID with total spent. 
 
-Join sales + menu, group by customer_id, and sum the spending.
+📈 **Corporate Insight:** This is useful in sales in identify the **highest revenue-generating customer**. Businesses can then analyse their spending behavior and design loyalty programs *(in this case, membership cards which they stamp and you get free Nasi Lemak! 🍚)*, targeted campaigns, or premium offers to maximize retention.
+
+- **Step 1:** Join `sales` with `menu` to get the spending per order.
+- **Step 2:** Group by `customer_id` to calculate total spending.
+- **Step 3:** Order results by `total_spent` in descending order and select the **top** customer.
 
 <details> 
-<summary> ▶️ Show solution 💡</summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
 SELECT 
@@ -196,7 +215,10 @@ LIMIT 1;
 </details>
 
 ### 8. Which dish generated the most revenue?
-Group by product_id, join with menu, and calculate total revenue per dish.
+
+- **Step 1:** Join `sales` with `menu`.
+- **Step 2:** Group by `food_name`.
+- **Step 3:** Order by revenue and pick the top result.
 
 <details> 
 <summary> ▶️ Show solution 💡</summary>
@@ -219,13 +241,20 @@ LIMIT 1;
 | Nasi Lemak Sotong | 180                    |
 </details>
 
-### 9. What is the average order value for each channel?
-Join sales, menu, and order_channels, group by channel, and compute average spend per order.
+📈 **Corporate Insight:** Knowing the top-earning dish helps restaurants decide what to feature on menus, run promotions for, or ensure that supply is never short.
+
+### 9. What is the average order value for each channel? Round to the nearest 2 decimal points.
+
+- **Step 1:** Join `sales`, `menu`, and `order_channels` to link orders with both prices and channels.
+- **Step 2:** Use a CTE to calculate the total price per order by channel.
+- **Step 3:** Apply `AVG` on order values and round to 2 decimals for readability.
+- **Step 4:** Order results to easily see which channel has the highest AOV.
 
 <details> 
 <summary> ▶️ Show solution 💡</summary>
 
 ```sql
+-- Use a CTE to calculate the total price per order by channel
 WITH order_channel_prices AS (
 SELECT 
 	channels.channel_name,
@@ -240,7 +269,7 @@ INNER JOIN uptown_nasi_lemak.order_channels AS channels
 
 SELECT
 	channel_name,
-    ROUND(AVG(price),2) AS avg_order_value
+  ROUND(AVG(price),2) AS avg_order_value
 FROM order_channel_prices
 GROUP BY channel_name
 ORDER BY avg_order_value DESC;
@@ -254,16 +283,37 @@ ORDER BY avg_order_value DESC;
 | GrabFood     | 10.20            |
 </details>
 
+📈 **Corporate Insight:** Average order value (AOV) is a key business metric. It helps identify which sales channels (e.g., dine-in, takeaway, delivery) bring in higher-value customers. Companies can then prioritize or optimize the most profitable channels.
+
 ### 10. Which customer used all 3 order channels?
-For each customer_id, count how many distinct channels they used and filter for exactly 3.
+
+💡 Tip: Identifying multi-channel customers is useful in loyalty marketing — these are engaged customers who interact across platforms and are more likely to be brand advocates.
+Step 1: Select customer_id and channel_id from sales.
+Step 2: Use COUNT(DISTINCT channel_id) for each customer.
+Step 3: Filter results where the count = 3.
 
 <details> 
 <summary> ▶️ Show solution 💡</summary>
 
 ```sql
-SELECT COUNT(DISTINCT customer_id) AS customer_count
-FROM uptown_nasi_lemak.sales;
+SELECT 
+	customer_id,
+  COUNT(DISTINCT channel_id) AS unique_order_channels
+FROM uptown_nasi_lemak.sales
+GROUP BY customer_id
+HAVING COUNT(DISTINCT channel_id) = 3;
 ```
 
-✅ Expected result: 10
+✅ Expected result:
+| customer_id | unique_order_channels |
+| ----------- | --------------------- |
+| A           | 3                     |
+| B           | 3                     |
+| C           | 3                     |
+| F           | 3                     |
+| H           | 3                     |
 </details>
+
+Good job! You've completed the tutorials. Give yourself a pat on the back.
+
+Let's move on to the real thing: the Assignment!
