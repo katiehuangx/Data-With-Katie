@@ -51,10 +51,12 @@ We want to list all the menu items sold. Since duplicates don’t add value here
 
 <details> 
 <summary> ▶️ Show solution 💡</summary>
+
 ```sql
 SELECT DISTINCT food_name
 FROM uptown_nasi_lemak.menu;
 ```
+
 ✅ Expected result: 3 rows (Nasi Lemak Ayam Goreng, Nasi Lemak Sotong, Nasi Lemak Telur Mata)
 </details>
 
@@ -68,24 +70,80 @@ We’re finding how many different customers placed an order. That means countin
 
 <details> 
 <summary> ▶️ Show solution 💡</summary>
+
 ```sql
 SELECT COUNT(DISTINCT customer_id) AS customer_count
 FROM uptown_nasi_lemak.sales;
 ```
+
 ✅ Expected result: 10
 </details>
 
 ---
 
-🍜 Intermediate (Level 4–6)
-4. How many times was each dish ordered?
-Group by product_id or product_name and count the number of times each dish was ordered.
+## 🍜 Intermediate (Level 4–6)
 
-5. What is the total revenue made by the restaurant?
+### 4. How many times was each dish ordered? 
+Output the name of the dish and the number of times each dish was ordered sorted by ascending order. 
+
+We want to see the popularity of each menu item. To do that, we group by dish name and count how many times it was ordered.  
+
+💡 Tip: It might feel easier to group by `food_id` and just output IDs. But in real-world reporting, IDs aren’t meaningful to business users. Showing the actual **dish names** makes the output much clearer and more useful.  
+
+- **Step 1:** Identify the tables needed → `uptown_nasi_lemak.sales` (orders) and `uptown_nasi_lemak.menu` (menu details).  
+- **Step 2:** Join them on `food_id` to match orders with dish names.  
+- **Step 3:** Use `COUNT(order_id)` grouped by `food_name` to find the number of times each dish was ordered.  
+- **Step 4:** Sort the results in ascending order by the count.  
+
+<details> 
+<summary> ▶️ Show solution 💡</summary>
+
+```sql
+SELECT 
+	menu.food_name,
+    COUNT(sales.order_id) AS no_dish_ordered
+FROM uptown_nasi_lemak.sales AS sales
+INNER JOIN uptown_nasi_lemak.menu AS menu
+	ON sales.food_id = menu.food_id
+GROUP BY menu.food_name
+ORDER BY no_dish_ordered ASC;
+```
+
+✅ Expected result:
+| food_name | no_dish_ordered | 
+| ---------------------- | --------------- | 
+| Nasi Lemak Ayam Goreng | 11 | 
+| Nasi Lemak Sotong | 12 | 
+| Nasi Lemak Telur Mata | 13 |
+
+</details>
+
+### 5. What is the total revenue made by the restaurant?
 Join sales with menu, multiply quantity by price, and sum it.
 
-6. What is the total number of orders from each order channel?
+<details> 
+<summary> ▶️ Show solution 💡</summary>
+
+```sql
+
+
+```
+
+✅ Expected result: 10
+</details>
+
+### 6. What is the total number of orders from each order channel?
 Join sales with order_channels and group by channel.
+
+<details> 
+<summary> ▶️ Show solution 💡</summary>
+
+```sql
+
+```
+
+✅ Expected result: 10
+</details>
 
 ---
 
@@ -93,12 +151,55 @@ Join sales with order_channels and group by channel.
 7. Which customer spent the most in total?
 Join sales + menu, group by customer_id, and sum the spending.
 
+<details> 
+<summary> ▶️ Show solution 💡</summary>
+
+```sql
+SELECT COUNT(DISTINCT customer_id) AS customer_count
+FROM uptown_nasi_lemak.sales;
+```
+
+✅ Expected result: 10
+</details>
+
 8. Which dish generated the most revenue?
 Group by product_id, join with menu, and calculate total revenue per dish.
+
+<details> 
+<summary> ▶️ Show solution 💡</summary>
+
+```sql
+SELECT COUNT(DISTINCT customer_id) AS customer_count
+FROM uptown_nasi_lemak.sales;
+```
+
+✅ Expected result: 10
+</details>
 
 9. What is the average order value for each channel?
 Join sales, menu, and order_channels, group by channel, and compute average spend per order.
 
+<details> 
+<summary> ▶️ Show solution 💡</summary>
+
+```sql
+SELECT COUNT(DISTINCT customer_id) AS customer_count
+FROM uptown_nasi_lemak.sales;
+```
+
+✅ Expected result: 10
+</details>
+
 10. Which customer used all 3 order channels?
 For each customer_id, count how many distinct channels they used and filter for exactly 3.
 
+<details> 
+<summary> ▶️ Show solution 💡</summary>
+
+```sql
+SELECT COUNT(DISTINCT customer_id) AS customer_count
+FROM uptown_nasi_lemak.sales;
+```
+
+✅ Expected result: 10
+</details>
