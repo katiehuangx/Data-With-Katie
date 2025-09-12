@@ -9,8 +9,8 @@ The tutorial questions are arranged in increasing difficulty ⬆️. We'll start
 Each question comes with a short explanation of the concept it teaches, so you can practice and build confidence step by step. 😉
 
 If you’d like to:
-- check your answers → click the **▶️ Show solution 💡** toggle under each question to expand the solution. 
-- practice on your own or add into your portfolio → use the questions_only.md and insert your own solutions.
+- Check your answers → click the **▶️ Show solution 💡** toggle in each question to expand the solution. 
+- Practice on your own or add into your portfolio → use the questions_only.md and insert your own solutions.
 
 ---
 
@@ -19,6 +19,8 @@ If you’d like to:
 ### 1. How many total orders were made?
 
 We’re simply counting all the rows in the `sales` table since each row represents one order. 
+
+💡 **Key Takeaway:** Overall sales volume is one of the first metrics leadership looks at to measure store performance at a glance.
 
 - **Step 1:** Identify the table where the data is from → `uptown_nasi_lemak.sales`. 
 <p align="left">
@@ -30,13 +32,11 @@ We’re simply counting all the rows in the `sales` table since each row represe
 - **Step 2:** Use `COUNT(*)` or `COUNT(order_id)` to count the rows. 
 - **Step 3:** Give the result a meaningful column name `AS sales_count`.
 
-💡 **Key Takeaway:** Overall **sales volume** is one of the first metrics leadership looks at to measure store performance at a glance.
-
 <details> 
 <summary> ▶️ Show solution 💡 (click to expand) </summary>
 
 ```sql
-SELECT COUNT(*) AS sales_count
+SELECT COUNT(*) AS no_of_total_orders
 FROM uptown_nasi_lemak.sales;
 ```
 
@@ -44,18 +44,17 @@ FROM uptown_nasi_lemak.sales;
 
 </details>
 
-
 ### 2. What are the names of all menu items available?
 
-We want to list all the menu items sold. Since duplicates don’t add value here, we use `DISTINCT` so each food name shows only once.  
+Since duplicates don’t add value here, we use `DISTINCT` so each food name shows only once.  
 
-💡 **Why it matters:** Clean, de-duplicated lists are critical when **sharing data with non-technical teams** like Marketing or Ops, who expect to see **business-friendly labels** instead of IDs.
+💡 **Why it matters:** Clean, de-duplicated lists are critical when **sharing data with non-technical teams** like Marketing or Operation who expect to see **business-friendly labels** instead of IDs.
 
 - **Step 1:** Identify table where menu items are stored → `uptown_nasi_lemak.menu`.  
 - **Step 2:** Apply `DISTINCT` on `food_name` to remove duplicates.
 
 <details> 
-<summary> ▶️ Show solution </summary>
+<summary> ▶▶️ Show solution 💡  </summary>
 
 ```sql
 SELECT DISTINCT food_name
@@ -80,10 +79,10 @@ We’re finding how many different customers placed an order. That means countin
 - **Step 2:** Use `COUNT(DISTINCT customer_id)` to count unique values.
 
 <details> 
-<summary> ▶️ Show solution </summary>
+<summary> ▶️ Show solution 💡</summary>
 
 ```sql
-SELECT COUNT(DISTINCT customer_id) AS customer_count
+SELECT COUNT(DISTINCT customer_id) AS no_of_unique_customers
 FROM uptown_nasi_lemak.sales;
 ```
 
@@ -92,20 +91,19 @@ FROM uptown_nasi_lemak.sales;
 
 ---
 
-## 🍜 Intermediate (Level 4–6)
+## 🛑 Intermediate (Level 4–6)
 
-### 4. How many times was each dish ordered?  
+### 4. How many times was each dish ordered? Sort the results in ascending order by the count. 
 We want to see the popularity of each menu item. 
 
 📌 **Business Note:** It might feel easier to group by `food_id` and just output IDs, but in real-world reporting, IDs aren’t meaningful to business users. Showing the **actual dish names** makes the output presentation-ready, clearer, and more useful when sharing results with management.
 
-- **Step 1:** Identify the tables needed → `uptown_nasi_lemak.sales` and `uptown_nasi_lemak.menu`.  
-- **Step 2:** Join them on `food_id` to match orders with dish names.  
-- **Step 3:** Use `COUNT(order_id)` grouped by `food_name` to find the number of times each dish was ordered.  
-- **Step 4:** Sort the results in ascending order by the count.  
+- **Step 1:** Join the `uptown_nasi_lemak.sales` and `uptown_nasi_lemak.menu` to match orders with dish names.  
+- **Step 2:** Use `COUNT(order_id)` grouped by `food_name` to find the number of times each dish was ordered.  
+- **Step 3:** Sort the results in ascending order by the count.  
 
 <details> 
-<summary> ▶️ Show solution </summary>
+<summary> ▶️ Show solution 💡</summary>
 
 ```sql
 SELECT 
@@ -129,13 +127,13 @@ ORDER BY no_of_dish_ordered ASC;
 
 ### 5. What is the total revenue made by the restaurant?
 
-📌 **Business Note:** Revenue tracking is the foundation of every financial report and is typically the first metric reviewed in monthly P&Ls.
+📌 **Business Note:** Revenue tracking is the foundation of every financial report and is typically the first metric reviewed in monthly Profit & Loss.
 
-- **Step 1:** Join `sales` with `menu` using `food_id` to get the price of each item sold.
+- **Step 1:** Join `uptown_nasi_lemak.sales` with `uptown_nasi_lemak.menu` using `food_id` to get the price of each item sold.
 - **Step 2:** Use `SUM(menu.price)` to add up the revenue from all rows.
 
 <details> 
-<summary> ▶️ Show solution</summary>
+<summary> ▶️ Show solution 💡</summary>
 
 ```sql
 SELECT SUM(menu.price) AS revenue
@@ -150,15 +148,15 @@ INNER JOIN uptown_nasi_lemak.menu AS menu
 | 416     |
 </details>
 
-### 6. What is the total number of orders from each order channel? 
+### 6. What is the total number of orders from each order channel? Sort results by ascending order of the total number of orders.
 
-We want to know how many orders came from Dine-In, Takeaway, and GrabFood. Sort results by ascending order of the number of orders.
+We want to know how many orders came from Dine-In, Takeaway, and GrabFood. 
 
-- **Step 1:** Join `sales` with `order_channels` using `channel_id`.
+- **Step 1:** Join `uptown_nasi_lemak.sales` with `uptown_nasi_lemak.order_channels` using `channel_id`.
 - **Step 2:** Count how many `order_id` values appear for each channel.
 - **Step 3:** Group by `channel_name` and sort results.
 
-📌 **Business Note:** Splitting by channel helps businesses evaluate the ROI of delivery partnerships and optimize staff allocation across delivery, dine-in vs. takeaway.
+📌 **Business Note:** Splitting by channel helps businesses evaluate the ROI of delivery partnerships and optimize staff allocation across delivery vs. dine-in vs. takeaway.
 
 <details> 
 <summary> ▶️ Show solution 💡</summary>
@@ -190,12 +188,12 @@ ORDER BY no_of_orders ASC;
 
 📈 **Corporate Insight:** This is useful in sales in identify the **highest revenue-generating customer**. Businesses can then analyse their spending behavior and design loyalty programs *(in this case, membership cards which they stamp and you get free Nasi Lemak! 🍚)*, targeted campaigns, or premium offers to maximize retention.
 
-- **Step 1:** Join `sales` with `menu` to get the spending per order.
+- **Step 1:** Join `uptown_nasi_lemak.sales` with `uptown_nasi_lemak.menu` to get the spending per order.
 - **Step 2:** Group by `customer_id` to calculate total spending.
 - **Step 3:** Order results by `total_spent` in descending order and select the **top** customer.
 
 <details> 
-<summary> ▶️ Show solution</summary>
+<summary> ▶️ Show solution 💡</summary>
 
 ```sql
 SELECT 
@@ -217,9 +215,11 @@ LIMIT 1;
 
 ### 8. Which dish generated the most revenue?
 
-- **Step 1:** Join `sales` with `menu`.
+📈 **Corporate Insight:** Knowing the top-earning dish helps restaurants decide what to feature on menus, run promotions for, or ensure that supply is never short.
+
+- **Step 1:** Join `uptown_nasi_lemak.sales` with `uptown_nasi_lemak.menu`.
 - **Step 2:** Group by `food_name`.
-- **Step 3:** Order by revenue and pick the top result.
+- **Step 3:** Order revenue in descending order (highest) and pick the top result.
 
 <details> 
 <summary> ▶️ Show solution 💡</summary>
@@ -242,12 +242,10 @@ LIMIT 1;
 | Nasi Lemak Sotong | 180                    |
 </details>
 
-📈 **Corporate Insight:** Knowing the top-earning dish helps restaurants decide what to feature on menus, run promotions for, or ensure that supply is never short.
-
 ### 9. What is the average order value for each channel? Round to the nearest 2 decimal points.
 
-- **Step 1:** Join `sales`, `menu`, and `order_channels` to link orders with both prices and channels.
-- **Step 2:** Use a CTE to calculate the total price per order by channel.
+- **Step 1:** Join `uptown_nasi_lemak.sales`, `uptown_nasi_lemak.menu`, and `uptown_nasi_lemak.order_channels` to link orders with both prices and channels.
+- **Step 2:** Use a `CTE` to calculate the total price per order by channel.
 - **Step 3:** Apply `AVG` on order values and round to 2 decimals for readability.
 - **Step 4:** Order results to easily see which channel has the highest AOV.
 
@@ -255,17 +253,16 @@ LIMIT 1;
 <summary> ▶️ Show solution 💡</summary>
 
 ```sql
--- Use a CTE to calculate the total price per order by channel
 WITH order_channel_prices AS (
-SELECT 
-	channels.channel_name,
+  SELECT 
+    channels.channel_name,
     sales.order_id,
-  	menu.price
-FROM uptown_nasi_lemak.sales AS sales
-INNER JOIN uptown_nasi_lemak.menu AS menu
-	ON sales.food_id = menu.food_id
-INNER JOIN uptown_nasi_lemak.order_channels AS channels
-	ON sales.channel_id = channels.channel_id
+    menu.price
+  FROM uptown_nasi_lemak.sales AS sales
+  INNER JOIN uptown_nasi_lemak.menu AS menu
+    ON sales.food_id = menu.food_id
+  INNER JOIN uptown_nasi_lemak.order_channels AS channels
+    ON sales.channel_id = channels.channel_id
 )
 
 SELECT
@@ -288,9 +285,7 @@ ORDER BY avg_order_value DESC;
 
 ### 10. Which customer used all 3 order channels?
 
-💡 Tip: Identifying multi-channel customers is useful in loyalty marketing — these are engaged customers who interact across platforms and are more likely to be brand advocates.
-
-- **Step 1:** Select `customer_id` and `channel_id` from sales.
+- **Step 1:** Select `customer_id` and `channel_id` from `uptown_nasi_lemak.sales`.
 - **Step 2:** Use `COUNT(DISTINCT channel_id)` for each customer.
 - **Step 3:** Filter results where the count = 3.
 
