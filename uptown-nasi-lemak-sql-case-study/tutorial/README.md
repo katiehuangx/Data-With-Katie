@@ -21,7 +21,6 @@ If you’d like to:
 We’re simply counting all the rows in the `sales` table since each row represents one order. 
 
 - **Step 1:** Identify the table where the data is from → `uptown_nasi_lemak.sales`. 
-
 <p align="left">
   <img src="erd.png" alt="Uptown Nasi Lemak ERD" width="700"/>
 </p>
@@ -33,10 +32,12 @@ We’re simply counting all the rows in the `sales` table since each row represe
 
 <details> 
 <summary> ▶️ Show solution 💡 (click to expand) </summary>
+
 ```sql
 SELECT COUNT(*) AS sales_count
 FROM uptown_nasi_lemak.sales;
 ```
+
 ✅ Expected result: 36
 </details>
 
