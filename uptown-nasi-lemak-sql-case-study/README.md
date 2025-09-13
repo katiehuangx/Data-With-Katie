@@ -1,8 +1,8 @@
-# Uptown Park Nasi Lemak
+# 📚 SQL Case Study: Uptown Village Nasi Lemak
 
 ## Introduction
 
-Aina is a huge fan of Malaysian comfort food especially nasi lemak. At the start of 2025, she decided to take a leap and opened her own small restaurant: **Uptown Park Nasi Lemak**, right in the heart of Damansara Uptown. The restaurant specializes in her top 3 favourite dishes:
+Aina is a huge fan of Malaysian comfort food especially nasi lemak. At the start of 2025, she decided to take a leap and opened her own small restaurant: **Uptown Village Nasi Lemak**, right in the heart of Damansara Uptown. The restaurant specializes in her top 3 favourite dishes:
 
 - 🍛 Nasi Lemak Ayam Goreng,
 - 🥥 Nasi Lemak Ayam Rendang, and

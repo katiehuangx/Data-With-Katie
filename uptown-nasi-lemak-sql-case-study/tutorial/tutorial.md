@@ -14,7 +14,47 @@ If you’d like to:
 
 ---
 
-## 🌱 Beginner (Level 1–3)
+## Mini Sandbox (Warm-up for Absolute Beginners)
+
+
+## 🌱 Absolute Beginner Section: “SQL Sandbox”
+
+### 1. Show the first 15 rows of the orders table.
+
+<p align="left">
+  <img src="erd.png" alt="Uptown Nasi Lemak ERD" width="700"/>
+</p>
+Visual guide to understand table relationships
+
+*(Link to Entity Relationship (ER) diagram: [here](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png))*
+
+<details> 
+<summary> ▶️ Show solution (Click to expand) </summary>
+
+```sql
+SELECT *
+FROM uptown_nasi_lemak.orders
+LIMIT 15;
+```
+
+✅ Expected result: 36
+
+</details>
+
+### 2. Show the first 5 rows of the menu table.
+### 3. List all unique channel_id values.
+### 4. What is the highest price in the menu? 
+### 5. What is the lowest price in the menu? (Beginner)
+### 6. How many rows are in the menu table? (Beginner)
+### 7. Show all orders where the channel_id = 1 (Dine-In). (Beginner)
+### 8. List all distinct customer_ids. (Beginner)
+### 9. Retrieve the food_name and price for each menu item. (Beginner)
+### 10. Show the date of the earliest and latest orders. (Beginner/Intermediate)
+
+
+---
+
+## 🌱 SQL Tutorial (Level 1–3)
 
 ### 1. How many total orders were made?
 
@@ -310,6 +350,13 @@ HAVING COUNT(DISTINCT channel_id) = 3;
 | F           | 3                     |
 | H           | 3                     |
 </details>
+
+Which customer placed the earliest order in the dataset?
+Find all customers who ordered more than once on the same day.
+For each dish, what is the average price ordered (useful if discounts existed)?
+Which dish was ordered by the largest number of unique customers?
+Show the top 5 customers by number of orders.
+
 
 ---
 
