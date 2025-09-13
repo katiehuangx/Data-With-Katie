@@ -22,11 +22,11 @@ If you’d like to:
 ### 1. Show the first 15 rows of the orders table.
 
 <p align="left">
-  <img src="erd.png" alt="Uptown Nasi Lemak ERD" width="700"/>
+  <img src="https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png" alt="Uptown Nasi Lemak ERD" width="700"/>
 </p>
 Visual guide to understand table relationships
 
-*(Link to Entity Relationship (ER) diagram: [here](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png))*
+*Link to Entity Relationship (ER) diagram: [here](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png)*
 
 <details> 
 <summary> ▶️ Show solution (Click to expand) </summary>
@@ -37,7 +37,26 @@ FROM uptown_nasi_lemak.orders
 LIMIT 15;
 ```
 
-✅ Expected result: 36
+✅ Expected result: 
+|  |  |  |  |  |  |  |
+|---|---|---|---|---|---|---|
+| order_id | customer_id | order_date | menu_id | channel_id | quantity | unit_price |
+| 1 | C001 | 2025-01-01 | F02 | 1 | 1 | 15.80 |
+| 2 | C002 | 2025-01-01 | F01 | 1 | 1 | 12.20 |
+| 3 | C003 | 2025-01-01 | F03 | 2 | 1 | 8.90 |
+| 4 | C004 | 2025-01-02 | F01 | 2 | 1 | 12.20 |
+| 5 | C005 | 2025-01-02 | F04 | 3 | 2 | 3.80 |
+| 6 | C006 | 2025-01-02 | F02 | 1 | 1 | 15.80 |
+| 7 | C007 | 2025-01-03 | F05 | 1 | 1 | 18.00 |
+| 8 | C008 | 2025-01-03 | F06 | 2 | 2 | 15.50 |
+| 9 | C009 | 2025-01-03 | F01 | 3 | 1 | 12.20 |
+| 10 | C010 | 2025-01-03 | F03 | 1 | 1 | 8.90 |
+| 11 | C001 | 2025-01-04 | F02 | 1 | 2 | 15.80 |
+| 12 | C002 | 2025-01-04 | F04 | 2 | 1 | 3.80 |
+| 13 | C003 | 2025-01-04 | F01 | 1 | 1 | 12.20 |
+| 14 | C004 | 2025-01-05 | F03 | 3 | 1 | 8.90 |
+| 15 | C005 | 2025-01-05 | F02 | 2 | 1 | 15.80 |
+
 
 </details>
 
