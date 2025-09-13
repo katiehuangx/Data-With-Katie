@@ -19,14 +19,14 @@ If you’d like to:
 
 ## 🌱 Absolute Beginner Section: “SQL Sandbox”
 
-### 1. Show the first 15 rows of the orders table.
-
+Visual guide to understand table relationships:
 <p align="left">
   <img src="https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png" alt="Uptown Nasi Lemak ERD" width="700"/>
 </p>
-Visual guide to understand table relationships
 
-*Link to Entity Relationship (ER) diagram: [here](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png)*
+Link to Entity Relationship (ER) diagram: [here](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png)
+
+### 1. Show the first 10 rows of the orders table.
 
 <details> 
 <summary> ▶️ Show solution (Click to expand) </summary>
@@ -50,17 +50,31 @@ LIMIT 15;
 | 8 | C008 | 2025-01-03 | F06 | 2 | 2 | 15.50 |
 | 9 | C009 | 2025-01-03 | F01 | 3 | 1 | 12.20 |
 | 10 | C010 | 2025-01-03 | F03 | 1 | 1 | 8.90 |
-| 11 | C001 | 2025-01-04 | F02 | 1 | 2 | 15.80 |
-| 12 | C002 | 2025-01-04 | F04 | 2 | 1 | 3.80 |
-| 13 | C003 | 2025-01-04 | F01 | 1 | 1 | 12.20 |
-| 14 | C004 | 2025-01-05 | F03 | 3 | 1 | 8.90 |
-| 15 | C005 | 2025-01-05 | F02 | 2 | 1 | 15.80 |
-
-
 
 </details>
 
 ### 2. Show the first 5 rows of the menu table.
+
+<details> 
+<summary> ▶️ Show solution (Click to expand) </summary>
+
+```sql
+SELECT *
+FROM uptown_nasi_lemak.menu
+LIMIT 5;
+```
+
+✅ Expected result: 
+| **food_id** | **food_name** | **unit_price** | **category** |
+|---|---|---|---|
+| F01 | Nasi Lemak Ayam Goreng (Fried Chicken Nasi Lemak) | 12.00 | Main |
+| F02 | Nasi Lemak Sotong (Squid Sambal Nasi Lemak) | 14.50 | Main |
+| F03 | Nasi Lemak Telur Mata (Egg Nasi Lemak) | 7.50 | Main |
+| F04 | Teh Tarik (Pulled Milk Tea) | 3.50 | Beverage |
+| F05 | Sambal Sotong Extra (Spicy Squid Sambal) | 6.50 | Side |
+
+</details>
+
 ### 3. List all unique channel_id values.
 ### 4. What is the highest price in the menu? 
 ### 5. What is the lowest price in the menu? (Beginner)
