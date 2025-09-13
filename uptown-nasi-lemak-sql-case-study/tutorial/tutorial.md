@@ -38,9 +38,8 @@ LIMIT 15;
 ```
 
 ✅ Expected result: 
-|  |  |  |  |  |  |  |
+| **order_id** | **customer_id** | **order_date** | **menu_id** | **channel_id** | **quantity** | **unit_price** |
 |---|---|---|---|---|---|---|
-| order_id | customer_id | order_date | menu_id | channel_id | quantity | unit_price |
 | 1 | C001 | 2025-01-01 | F02 | 1 | 1 | 15.80 |
 | 2 | C002 | 2025-01-01 | F01 | 1 | 1 | 12.20 |
 | 3 | C003 | 2025-01-01 | F03 | 2 | 1 | 8.90 |
@@ -56,6 +55,7 @@ LIMIT 15;
 | 13 | C003 | 2025-01-04 | F01 | 1 | 1 | 12.20 |
 | 14 | C004 | 2025-01-05 | F03 | 3 | 1 | 8.90 |
 | 15 | C005 | 2025-01-05 | F02 | 2 | 1 | 15.80 |
+
 
 
 </details>
