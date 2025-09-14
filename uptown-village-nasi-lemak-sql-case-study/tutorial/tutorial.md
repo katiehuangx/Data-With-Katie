@@ -21,7 +21,7 @@ If you’d like to:
 
 Visual guide to understand table relationships:
 <p align="left">
-  <img src="erd.png" alt="Uptown Nasi Lemak ERD" width="700"/>
+  <img src="https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-village-nasi-lemak-sql-case-study/assets/erd.png" alt="Uptown Nasi Lemak ERD" width="700"/>
 </p>
 
 Link to Entity Relationship (ER) diagram: [here](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png)
