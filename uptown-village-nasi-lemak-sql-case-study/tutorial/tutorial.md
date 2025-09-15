@@ -354,65 +354,85 @@ ORDER BY no_of_dish_ordered ASC;
 | Nasi Lemak Sotong (Squid Sambal Nasi Lemak)       | 53                     |
 | Nasi Lemak Ayam Goreng (Fried Chicken Nasi Lemak) | 53                     |
 
-
 </details>
 
 ### 5. What is the total revenue made by the restaurant?
 
 📌 **Business Note:** Revenue tracking is the foundation of every financial report and is typically the first metric reviewed in monthly Profit & Loss.
 
-- **Step 1:** Join `uptown_nasi_lemak.sales` with `uptown_nasi_lemak.menu` using `food_id` to get the price of each item sold.
-- **Step 2:** Use `SUM(menu.price)` to add up the revenue from all rows.
+- **Step 1:** Use the `uptown_nasi_lemak.orders` table to retrieve the order quantity and unit price of food.
+- **Step 2:** Mutiply `quantity` and `unit_price` then apply `SUM` to add up revenue from all rows.
 
 <details> 
-<summary> ▶️ Show solution 💡</summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
-SELECT SUM(menu.price) AS revenue
-FROM uptown_nasi_lemak.sales AS sales
-INNER JOIN uptown_nasi_lemak.menu AS menu
-	ON sales.food_id = menu.food_id;
+SELECT SUM(quantity * unit_price) AS total_revenue
+FROM uptown_nasi_lemak.orders
 ```
 
 ✅ Expected result:
-| revenue |
-| ------- |
-| 416     |
+| **total_revenue** |
+|-------------------|
+| 3894.30           |
+
 </details>
 
-### 6. What is the total number of orders from each order channel? Sort results by ascending order of the total number of orders.
+### 6. What is the total number of orders from each order channel? Sort results by the highest number of orders.
 
 We want to know how many orders came from Dine-In, Takeaway, and GrabFood. 
 
-- **Step 1:** Join `uptown_nasi_lemak.sales` with `uptown_nasi_lemak.order_channels` using `channel_id`.
+- **Step 1:** Join `uptown_nasi_lemak.orders` with `uptown_nasi_lemak.order_channels` using `channel_id`.
 - **Step 2:** Count how many `order_id` values appear for each channel.
 - **Step 3:** Group by `channel_name` and sort results.
 
 📌 **Business Note:** Splitting by channel helps businesses evaluate the ROI of delivery partnerships and optimize staff allocation across delivery vs. dine-in vs. takeaway.
 
 <details> 
-<summary> ▶️ Show solution 💡</summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
 SELECT 
   channels.channel_name,
-	COUNT(sales.order_id) AS no_of_orders
-FROM uptown_nasi_lemak.sales AS sales
+	COUNT(orders.order_id) AS no_of_orders
+FROM uptown_nasi_lemak.orders AS orders
 INNER JOIN uptown_nasi_lemak.order_channels AS channels
-	ON sales.channel_id = channels.channel_id
+	ON orders.channel_id = channels.channel_id
 GROUP BY channels.channel_name
-ORDER BY no_of_orders ASC;
+ORDER BY no_of_orders DESC;
 ```
 
 ✅ Expected result:  
-| channel_name | no_of_orders |
-| ------------ | ------------ |
-| GrabFood     | 10           |
-| Takeaway     | 11           |
-| Dine-In      | 15           |
+| **channel_name** | **no_of_orders** |
+|------------------|------------------|
+| Dine-In          | 108              |
+| Takeaway         | 100              |
+| GrabFood         | 92               |
+
+</details>
+
+### 7. How many orders don’t have a customer_id recorded? (NULL handling)
+
+<details> 
+<summary> ▶️ Show solution</summary>
+
+```sql
+SELECT *
+FROM uptown_nasi_lemak.orders AS orders
+WHERE customer_id IS NULL;
+```
+
+✅ Expected result:  
+| **order_id** | **customer_id** | **order_date** | **food_id** | **channel_id** | **quantity** | **unit_price** |
+|--------------|-----------------|----------------|-------------|----------------|--------------|----------------|
+| 13           | null            | 2025-01-04     | F01         | 1              | 1            | 12.20          |
+| 43           | null            | 2025-01-13     | F01         | 1              | 1            | 12.20          |
+| 195          | null            | 2025-01-22     | F05         | 2              | 1            | 18.00          |
+
 </details>
 
 ---
+
 
 ## 🔥 Advanced (Level 7–10)
 
@@ -420,7 +440,7 @@ ORDER BY no_of_orders ASC;
 
 📈 **Corporate Insight:** This is useful in sales in identify the **highest revenue-generating customer**. Businesses can then analyse their spending behavior and design loyalty programs *(in this case, membership cards which they stamp and you get free Nasi Lemak! 🍚)*, targeted campaigns, or premium offers to maximize retention.
 
-- **Step 1:** Join `uptown_nasi_lemak.sales` with `uptown_nasi_lemak.menu` to get the spending per order.
+- **Step 1:** Use `uptown_nasi_lemak.orders` to get the spending per order.
 - **Step 2:** Group by `customer_id` to calculate total spending.
 - **Step 3:** Order results by `total_spent` in descending order and select the **top** customer.
 
@@ -429,20 +449,19 @@ ORDER BY no_of_orders ASC;
 
 ```sql
 SELECT 
-	sales.customer_id,
-  SUM(menu.price) AS total_spent
-FROM uptown_nasi_lemak.sales AS sales
-INNER JOIN uptown_nasi_lemak.menu AS menu
-	ON sales.food_id = menu.food_id
-GROUP BY sales.customer_id
+	customer_id,
+  SUM(quantity*unit_price) AS total_spent
+FROM uptown_nasi_lemak.orders
+GROUP BY customer_id
 ORDER BY total_spent DESC
 LIMIT 1;
 ```
 
 ✅ Expected result: 
-| customer_id | total_spent |
-| ----------- | ----------- |
-| A           | 77          |
+| **customer_id** | **total_spent** |
+|-----------------|-----------------|
+| C007            | 176.20          |
+
 </details>
 
 ### 8. Which dish generated the most revenue?
