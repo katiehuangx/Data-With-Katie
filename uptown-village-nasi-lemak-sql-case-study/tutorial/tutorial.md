@@ -434,9 +434,9 @@ WHERE customer_id IS NULL;
 ---
 
 
-## 🔥 Advanced (Level 7–10)
+## 🔥 Advanced (Level 8–15)
 
-### 7. Which customer spent the most in total?
+### 8. Which customer spent the most in total?
 
 📈 **Corporate Insight:** This is useful in sales in identify the **highest revenue-generating customer**. Businesses can then analyse their spending behavior and design loyalty programs *(in this case, membership cards which they stamp and you get free Nasi Lemak! 🍚)*, targeted campaigns, or premium offers to maximize retention.
 
@@ -464,7 +464,7 @@ LIMIT 1;
 
 </details>
 
-### 8. Which dish generated the most revenue?
+### 9. Which dish generated the most revenue?
 
 📈 **Corporate Insight:** Knowing the top-earning dish helps restaurants decide what to feature on menus, run promotions for, or ensure that supply is never short.
 
@@ -493,74 +493,100 @@ LIMIT 1;
 | Sambal Sotong Extra (Spicy Squid Sambal) | 864.00                  |
 </details>
 
-### 9. What is the average order value for each channel? Round to the nearest 2 decimal points.
+### 10. What is the average order value (AOV) for each channel? Round to the nearest 2 decimal points.
 
-- **Step 1:** Join `uptown_nasi_lemak.sales`, `uptown_nasi_lemak.menu`, and `uptown_nasi_lemak.order_channels` to link orders with both prices and channels.
-- **Step 2:** Use a `CTE` to calculate the total price per order by channel.
+- **Step 1:** Join `uptown_nasi_lemak.orders` and `uptown_nasi_lemak.order_channels` to link orders with channels.
+- **Step 2:** Mutiply `quantity` and `unit_price` to retrieve order values.
 - **Step 3:** Apply `AVG` on order values and round to 2 decimals for readability.
 - **Step 4:** Order results to easily see which channel has the highest AOV.
 
 <details> 
-<summary> ▶️ Show solution 💡</summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
-WITH order_channel_prices AS (
-  SELECT 
-    channels.channel_name,
-    sales.order_id,
-    menu.price
-  FROM uptown_nasi_lemak.sales AS sales
-  INNER JOIN uptown_nasi_lemak.menu AS menu
-    ON sales.food_id = menu.food_id
-  INNER JOIN uptown_nasi_lemak.order_channels AS channels
-    ON sales.channel_id = channels.channel_id
-)
-
-SELECT
-	channel_name,
-  ROUND(AVG(price),2) AS avg_order_value
-FROM order_channel_prices
-GROUP BY channel_name
+SELECT 
+  channels.channel_name,
+  ROUND(AVG(orders.quantity*unit_price),2) AS avg_order_value
+FROM uptown_nasi_lemak.orders AS orders
+INNER JOIN uptown_nasi_lemak.order_channels AS channels
+  ON orders.channel_id = channels.channel_id
+GROUP BY channels.channel_name
 ORDER BY avg_order_value DESC;
 ```
 
+DOUBLE CHECK SOLUTION
+
 ✅ Expected result:
-| channel_name | avg_order_value |
-| ------------ | ---------------- |
-| Dine-In      | 12.33            |
-| Takeaway     | 11.73            |
-| GrabFood     | 10.20            |
+| **channel_name** | **avg_order_value** |
+|------------------|---------------------|
+| Takeaway         | 15.48               |
+| GrabFood         | 12.84               |
+| Dine-In          | 10.79               |
+
 </details>
 
 📈 **Corporate Insight:** Average order value (AOV) is a key business metric. It helps identify which sales channels (e.g., dine-in, takeaway, delivery) bring in higher-value customers. Companies can then prioritize or optimize the most profitable channels.
 
-### 10. Which customer used all 3 order channels?
+### 11. Which customer used all 3 order channels?
 
-- **Step 1:** Select `customer_id` and `channel_id` from `uptown_nasi_lemak.sales`.
-- **Step 2:** Use `COUNT(DISTINCT channel_id)` for each customer.
+- **Step 1:** Select `customer_id` from `uptown_nasi_lemak.orders`.
+- **Step 2:** Use `COUNT(DISTINCT channel_id) = 3` in `HAVING`.
 - **Step 3:** Filter results where the count = 3.
 
 <details> 
-<summary> ▶️ Show solution 💡</summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
-SELECT 
-	customer_id,
-  COUNT(DISTINCT channel_id) AS unique_order_channels
-FROM uptown_nasi_lemak.sales
-GROUP BY customer_id
+SELECT COUNT(customer_id)
+FROM uptown_nasi_lemak.orders
 HAVING COUNT(DISTINCT channel_id) = 3;
 ```
 
 ✅ Expected result:
-| customer_id | unique_order_channels |
-| ----------- | --------------------- |
-| A           | 3                     |
-| B           | 3                     |
-| C           | 3                     |
-| F           | 3                     |
-| H           | 3                     |
+| **count** |
+|-----------|
+| 297       |
+
 </details>
+
+### 12. Rank all customers by their total spend across all orders. Show each customer’s rank, total spend, and allow for ties to share the same rank.
+
+
+## !!!! Sorting by descending doesn't show the differences between rankings. To re-write the question!
+
+<details> 
+<summary> ▶️ Show solution</summary>
+
+```sql
+WITH customer_spending AS (
+  SELECT 
+      customer_id,
+      SUM(quantity*unit_price) AS total_spent
+  FROM uptown_nasi_lemak.orders
+  GROUP BY customer_id
+)
+
+SELECT 
+	customer_id,
+    total_spent,
+	-- RANK() OVER (ORDER BY total_spent DESC) AS rank_seq,
+	-- ROW_NUMBER() OVER (ORDER BY total_spent DESC) AS row_number_seq,
+    DENSE_RANK() OVER (ORDER BY total_spent DESC) AS dense_rank_seq
+FROM customer_spending
+WHERE customer_id IS NOT NULL;
+```
+
+✅ Expected result:
+| **count** |
+|-----------|
+| 297       |
+
+</details>
+
+
+6. Find the top 2 dishes per channel.
+7. Calculate the running total of revenue by date.
+
 
 Which customer placed the earliest order in the dataset?
 Find all customers who ordered more than once on the same day.
