@@ -77,31 +77,37 @@ LIMIT 5;
 
 ### 3. List all unique channel name values.
 
-SELECT DISTINCT channel_name
-FROM uptown_nasi_lemak.order_channels;
 <details> 
 <summary> ▶️ Show solution (Click to expand) </summary>
 
 ```sql
-
+SELECT DISTINCT channel_name
+FROM uptown_nasi_lemak.order_channels;
 ```
 
 ✅ Expected result: 
-
+| **channel_name** |
+|------------------|
+| GrabFood         |
+| Takeaway         |
+| Dine-In          |
 
 </details>
 
 ### 4. What is the highest price in the menu? 
 
 <details> 
-<summary> ▶️ Show solution (Click to expand) </summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
-
+SELECT MAX(unit_price)
+FROM uptown_nasi_lemak.orders;
 ```
 
 ✅ Expected result: 
-
+| **max** |
+|---------|
+| 18.00   |
 
 </details>
 
@@ -111,10 +117,14 @@ FROM uptown_nasi_lemak.order_channels;
 <summary> ▶️ Show solution (Click to expand) </summary>
 
 ```sql
-
+SELECT MIN(unit_price)
+FROM uptown_nasi_lemak.orders;
 ```
 
 ✅ Expected result: 
+| **min** |
+|---------|
+| 3.80    |
 
 
 </details>
@@ -122,56 +132,87 @@ FROM uptown_nasi_lemak.order_channels;
 ### 6. How many rows are in the menu table? (Beginner)
 
 <details> 
-<summary> ▶️ Show solution (Click to expand) </summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
-
+SELECT COUNT(*)
+FROM uptown_nasi_lemak.menu;
 ```
 
 ✅ Expected result: 
-
+| **count** |
+|-----------|
+| 10        |
 
 </details>
 
 ### 7. Show all orders where the channel_id = 1 (Dine-In). (Beginner)
 
 <details> 
-<summary> ▶️ Show solution (Click to expand) </summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
-
+SELECT *
+FROM uptown_nasi_lemak.orders
+WHERE channel_id = 1;
 ```
 
 ✅ Expected result: 
-
-
+Result has 108 rows, so we're only showing you the first 5 rows of orders. 
+| **order_id** | **customer_id** | **order_date** | **menu_id** | **channel_id** | **quantity** | **unit_price** |
+|--------------|-----------------|----------------|-------------|----------------|--------------|----------------|
+| 1            | C001            | 2025-01-01     | F02         | 1              | 1            | 15.80          |
+| 2            | C002            | 2025-01-01     | F01         | 1              | 1            | 12.20          |
+| 6            | C006            | 2025-01-02     | F02         | 1              | 1            | 15.80          |
+| 7            | C007            | 2025-01-03     | F05         | 1              | 1            | 18.00          |
+| 10           | C010            | 2025-01-03     | F03         | 1              | 1            | 8.90           |
 </details>
 
 ### 8. List all distinct customer_ids. (Beginner)
 
 <details> 
-<summary> ▶️ Show solution (Click to expand) </summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
-
+SELECT DISTINCT customer_id
+FROM uptown_nasi_lemak.customers;
 ```
 
 ✅ Expected result: 
-
+Result has 50 rows, so we're only showing you the first 5 rows of customers. 
+| **customer_id** |
+|-----------------|
+| C030            |
+| C045            |
+| C017            |
+| C001            |
+| C044            |
 
 </details>
 
-### 9. Retrieve the food_name and price for each menu item. (Beginner)
+### 9. What are the names of all menu items available?
 
 <details> 
-<summary> ▶️ Show solution (Click to expand) </summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
-
+SELECT food_name
+FROM uptown_nasi_lemak.menu;
 ```
 
 ✅ Expected result: 
-
+| **food_name**                                                      |
+|--------------------------------------------------------------------|
+| Nasi Lemak Ayam Goreng (Fried Chicken Nasi Lemak)                  |
+| Nasi Lemak Sotong (Squid Sambal Nasi Lemak)                        |
+| Nasi Lemak Telur Mata (Egg Nasi Lemak)                             |
+| Teh Tarik (Pulled Milk Tea)                                        |
+| Sambal Sotong Extra (Spicy Squid Sambal)                           |
+| Fried Chicken Wing                                                 |
+| Roti Bakar Butter & Kaya (Toasted Bread with Butter & Coconut Jam) |
+| Telur Separuh Masak (Half-Boiled Eggs)                             |
+| Milo Ais (Iced Chocolate Malt Drink)                               |
+| Sirap Bandung (Rose Syrup with Milk)                               |
 
 </details>
 
@@ -181,14 +222,19 @@ FROM uptown_nasi_lemak.order_channels;
 <summary> ▶️ Show solution (Click to expand) </summary>
 
 ```sql
-
+SELECT 
+	MIN(order_date),
+    MAX(order_date)
+FROM uptown_nasi_lemak.orders;
 ```
 
 ✅ Expected result: 
-
+The earliest order is on January 1st, 2025 and latest order on May 7th, 2025.
+| **min**    | **max**    |
+|------------|------------|
+| 2025-01-01 | 2025-05-07 |
 
 </details>
-
 
 
 ---
@@ -197,55 +243,54 @@ FROM uptown_nasi_lemak.order_channels;
 
 ### 1. How many total orders were made?
 
-We’re simply counting all the rows in the `sales` table since each row represents one order. 
+We’re simply counting all the rows in the `orders` table since each row represents one order. 
 
 💡 **Key Takeaway:** Overall sales volume is one of the first metrics leadership looks at to measure store performance at a glance.
 
-- **Step 1:** Identify the table where the data is from → `uptown_nasi_lemak.sales`. 
-<p align="left">
-  <img src="erd.png" alt="Uptown Nasi Lemak ERD" width="700"/>
-</p>
-
-*(Link to Entity Relationship (ER) diagram: [here](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png))*
-
+- **Step 1:** Identify the table where the data is from → `uptown_nasi_lemak.orders`. 
 - **Step 2:** Use `COUNT(*)` or `COUNT(order_id)` to count the rows. 
-- **Step 3:** Give the result a meaningful column name `AS sales_count`.
+- **Step 3:** Give the result a meaningful column name `AS total_orders_count`.
 
 <details> 
-<summary> ▶️ Show solution 💡 (click to expand) </summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
-SELECT COUNT(*) AS no_of_total_orders
-FROM uptown_nasi_lemak.sales;
+SELECT COUNT(*) AS total_orders_count
+FROM uptown_nasi_lemak.orders;
 ```
 
-✅ Expected result: 36
+✅ Expected result:
+| **total_orders_count** |
+|------------------------|
+| 300                    |
 
 </details>
 
-### 2. What are the names of all menu items available?
-
-Since duplicates don’t add value here, we use `DISTINCT` so each food name shows only once.  
-
-💡 **Why it matters:** Clean, de-duplicated lists are critical when **sharing data with non-technical teams** like Marketing or Operation who expect to see **business-friendly labels** instead of IDs.
-
-- **Step 1:** Identify table where menu items are stored → `uptown_nasi_lemak.menu`.  
-- **Step 2:** Apply `DISTINCT` on `food_name` to remove duplicates.
+### 2. Retrieve the food_name and price for each menu item. (Beginner)
 
 <details> 
-<summary> ▶▶️ Show solution 💡  </summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
-SELECT DISTINCT food_name
+SELECT 
+  food_name, 
+  unit_price
 FROM uptown_nasi_lemak.menu;
 ```
 
 ✅ Expected result: 
-| food_name              |
-| ---------------------- |
-| Nasi Lemak Ayam Goreng |
-| Nasi Lemak Sotong      |
-| Nasi Lemak Telur Mata  |
+| **food_name**                                                      | **unit_price** |
+|--------------------------------------------------------------------|----------------|
+| Nasi Lemak Ayam Goreng (Fried Chicken Nasi Lemak)                  | 12.00          |
+| Nasi Lemak Sotong (Squid Sambal Nasi Lemak)                        | 14.50          |
+| Nasi Lemak Telur Mata (Egg Nasi Lemak)                             | 7.50           |
+| Teh Tarik (Pulled Milk Tea)                                        | 3.50           |
+| Sambal Sotong Extra (Spicy Squid Sambal)                           | 6.50           |
+| Fried Chicken Wing                                                 | 5.00           |
+| Roti Bakar Butter & Kaya (Toasted Bread with Butter & Coconut Jam) | 3.20           |
+| Telur Separuh Masak (Half-Boiled Eggs)                             | 2.50           |
+| Milo Ais (Iced Chocolate Malt Drink)                               | 4.50           |
+| Sirap Bandung (Rose Syrup with Milk)                               | 4.00           |
 
 </details>
 
@@ -254,53 +299,61 @@ FROM uptown_nasi_lemak.menu;
 
 We’re finding how many different customers placed an order. That means counting distinct `customer_id`s rather than rows.
 
-- **Step 1:** Identify table with customer IDs → `uptown_nasi_lemak.sales`.
+- **Step 1:** Identify table with customer IDs → `uptown_nasi_lemak.orders`.
 - **Step 2:** Use `COUNT(DISTINCT customer_id)` to count unique values.
 
 <details> 
-<summary> ▶️ Show solution 💡</summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
-SELECT COUNT(DISTINCT customer_id) AS no_of_unique_customers
-FROM uptown_nasi_lemak.sales;
+SELECT COUNT(DISTINCT customer_id) AS unique_customers_count
+FROM uptown_nasi_lemak.orders;
 ```
 
-✅ Expected result: 10
+✅ Expected result:
+| **unique_customers_count** |
+|----------------------------|
+| 50                         |
+
 </details>
 
 ---
 
 ## 🛑 Intermediate (Level 4–6)
 
-### 4. How many times was each dish ordered? Sort the results in ascending order by the count. 
+### 4. How many times was each dish ordered? Sort results in ascending order by the count. 
 We want to see the popularity of each menu item. 
 
-📌 **Business Note:** It might feel easier to group by `food_id` and just output IDs, but in real-world reporting, IDs aren’t meaningful to business users. Showing the **actual dish names** makes the output presentation-ready, clearer, and more useful when sharing results with management.
+📌 **Business Note:** It might feel easier to group by `food_id` and output IDs, but in real-world reporting, IDs aren’t meaningful to business users. Showing the **actual dish names** makes the output presentation-ready, clearer, and more useful when sharing results with management.
 
-- **Step 1:** Join the `uptown_nasi_lemak.sales` and `uptown_nasi_lemak.menu` to match orders with dish names.  
+- **Step 1:** Join the `uptown_nasi_lemak.orders` and `uptown_nasi_lemak.menu` to match orders with dish names.  
 - **Step 2:** Use `COUNT(order_id)` grouped by `food_name` to find the number of times each dish was ordered.  
 - **Step 3:** Sort the results in ascending order by the count.  
 
 <details> 
-<summary> ▶️ Show solution 💡</summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
 SELECT 
 	menu.food_name,
-  COUNT(sales.order_id) AS no_of_dish_ordered
-FROM uptown_nasi_lemak.sales AS sales
+  COUNT(orders.order_id) AS no_of_dish_ordered
+FROM uptown_nasi_lemak.orders AS orders
 INNER JOIN uptown_nasi_lemak.menu AS menu
-	ON sales.food_id = menu.food_id
+	ON orders.food_id = menu.food_id
 GROUP BY menu.food_name
 ORDER BY no_of_dish_ordered ASC;
 ```
 
 ✅ Expected result:
-| food_name | no_of_dish_ordered | 
-| ---------------------- | --------------- | 
-| Nasi Lemak Ayam Goreng | 11 | 
-| Nasi Lemak Sotong | 12 | 
-| Nasi Lemak Telur Mata | 13 |
+| **food_name**                                     | **no_of_dish_ordered** |
+|---------------------------------------------------|------------------------|
+| Fried Chicken Wing                                | 47                     |
+| Teh Tarik (Pulled Milk Tea)                       | 48                     |
+| Sambal Sotong Extra (Spicy Squid Sambal)          | 48                     |
+| Nasi Lemak Telur Mata (Egg Nasi Lemak)            | 51                     |
+| Nasi Lemak Sotong (Squid Sambal Nasi Lemak)       | 53                     |
+| Nasi Lemak Ayam Goreng (Fried Chicken Nasi Lemak) | 53                     |
+
 
 </details>
 
