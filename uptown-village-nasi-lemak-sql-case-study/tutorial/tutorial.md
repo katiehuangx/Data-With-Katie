@@ -1,4 +1,4 @@
-# 📝 Tutorial 
+# 📝 SQL Tutorial 
 
 This tutorial is an introduction to SQL using a fun dataset inspired by a local Malaysian favourite: *Village Park Nasi Lemak 🍚🌶️🐔*. 
 
@@ -75,14 +75,120 @@ LIMIT 5;
 
 </details>
 
-### 3. List all unique channel_id values.
+### 3. List all unique channel name values.
+
+SELECT DISTINCT channel_name
+FROM uptown_nasi_lemak.order_channels;
+<details> 
+<summary> ▶️ Show solution (Click to expand) </summary>
+
+```sql
+
+```
+
+✅ Expected result: 
+
+
+</details>
+
 ### 4. What is the highest price in the menu? 
+
+<details> 
+<summary> ▶️ Show solution (Click to expand) </summary>
+
+```sql
+
+```
+
+✅ Expected result: 
+
+
+</details>
+
 ### 5. What is the lowest price in the menu? (Beginner)
+
+<details> 
+<summary> ▶️ Show solution (Click to expand) </summary>
+
+```sql
+
+```
+
+✅ Expected result: 
+
+
+</details>
+
 ### 6. How many rows are in the menu table? (Beginner)
+
+<details> 
+<summary> ▶️ Show solution (Click to expand) </summary>
+
+```sql
+
+```
+
+✅ Expected result: 
+
+
+</details>
+
 ### 7. Show all orders where the channel_id = 1 (Dine-In). (Beginner)
+
+<details> 
+<summary> ▶️ Show solution (Click to expand) </summary>
+
+```sql
+
+```
+
+✅ Expected result: 
+
+
+</details>
+
 ### 8. List all distinct customer_ids. (Beginner)
+
+<details> 
+<summary> ▶️ Show solution (Click to expand) </summary>
+
+```sql
+
+```
+
+✅ Expected result: 
+
+
+</details>
+
 ### 9. Retrieve the food_name and price for each menu item. (Beginner)
+
+<details> 
+<summary> ▶️ Show solution (Click to expand) </summary>
+
+```sql
+
+```
+
+✅ Expected result: 
+
+
+</details>
+
 ### 10. Show the date of the earliest and latest orders. (Beginner/Intermediate)
+
+<details> 
+<summary> ▶️ Show solution (Click to expand) </summary>
+
+```sql
+
+```
+
+✅ Expected result: 
+
+
+</details>
+
 
 
 ---
