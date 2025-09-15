@@ -468,29 +468,29 @@ LIMIT 1;
 
 📈 **Corporate Insight:** Knowing the top-earning dish helps restaurants decide what to feature on menus, run promotions for, or ensure that supply is never short.
 
-- **Step 1:** Join `uptown_nasi_lemak.sales` with `uptown_nasi_lemak.menu`.
+- **Step 1:** Join `uptown_nasi_lemak.orders` with `uptown_nasi_lemak.menu`.
 - **Step 2:** Group by `food_name`.
 - **Step 3:** Order revenue in descending order (highest) and pick the top result.
 
 <details> 
-<summary> ▶️ Show solution 💡</summary>
+<summary> ▶️ Show solution</summary>
 
 ```sql
 SELECT 
 	menu.food_name,
-    SUM(menu.price) AS most_revenue_generated
-FROM uptown_nasi_lemak.sales AS sales
+  SUM(orders.quantity*orders.unit_price) AS highest_revenue_generated
+FROM uptown_nasi_lemak.orders AS orders
 INNER JOIN uptown_nasi_lemak.menu AS menu
-	ON sales.food_id = menu.food_id
+	ON orders.food_id = menu.food_id
 GROUP BY menu.food_name
-ORDER BY most_revenue_generated DESC
+ORDER BY highest_revenue_generated DESC
 LIMIT 1;
 ```
 
 ✅ Expected result: 
-| food_name         | most_revenue_generated |
+| food_name         | highest_revenue_generated |
 | ----------------- | ---------------------- |
-| Nasi Lemak Sotong | 180                    |
+| Sambal Sotong Extra (Spicy Squid Sambal) | 864.00                  |
 </details>
 
 ### 9. What is the average order value for each channel? Round to the nearest 2 decimal points.
