@@ -549,44 +549,53 @@ HAVING COUNT(DISTINCT channel_id) = 3;
 
 </details>
 
-### 12. Rank all customers by their total spend across all orders. Show each customer’s rank, total spend, and allow for ties to share the same rank.
+### 12. Rank dishes by the number of times they were ordered. Use RANK(), DENSE_RANK(), and ROW_NUMBER() to demonstrate the differences in ranking when multiple dishes have the same order count.
 
-
-## !!!! Sorting by descending doesn't show the differences between rankings. To re-write the question!
 
 <details> 
 <summary> ▶️ Show solution</summary>
 
 ```sql
-WITH customer_spending AS (
+WITH dishes_popularity AS (
   SELECT 
-      customer_id,
-      SUM(quantity*unit_price) AS total_spent
-  FROM uptown_nasi_lemak.orders
-  GROUP BY customer_id
+    menu.food_name,
+    COUNT(orders.order_id) AS order_count
+  FROM uptown_nasi_lemak.orders AS orders
+  INNER JOIN uptown_nasi_lemak.menu AS menu
+  	ON orders.food_id = menu.food_id
+  GROUP BY menu.food_name
 )
 
 SELECT 
-	customer_id,
-    total_spent,
-	-- RANK() OVER (ORDER BY total_spent DESC) AS rank_seq,
-	-- ROW_NUMBER() OVER (ORDER BY total_spent DESC) AS row_number_seq,
-    DENSE_RANK() OVER (ORDER BY total_spent DESC) AS dense_rank_seq
-FROM customer_spending
-WHERE customer_id IS NOT NULL;
+	food_name,
+  order_count,
+  ROW_NUMBER() OVER (ORDER BY order_count DESC) AS row_number_seq,
+	RANK() OVER (ORDER BY order_count DESC) AS rank_seq,
+	DENSE_RANK() OVER (ORDER BY order_count DESC) AS dense_rank_seq
+FROM dishes_popularity;
 ```
 
 ✅ Expected result:
-| **count** |
-|-----------|
-| 297       |
+| **food_name**                                     | **order_count** | **row_number_seq** | **rank_seq** | **dense_rank_seq** |
+|---------------------------------------------------|-----------------|--------------------|--------------|--------------------|
+| Nasi Lemak Sotong (Squid Sambal Nasi Lemak)       | 53              | 1                  | 1            | 1                  |
+| Nasi Lemak Ayam Goreng (Fried Chicken Nasi Lemak) | 53              | 2                  | 1            | 1                  |
+| Nasi Lemak Telur Mata (Egg Nasi Lemak)            | 51              | 3                  | 3            | 2                  |
+| Teh Tarik (Pulled Milk Tea)                       | 48              | 4                  | 4            | 3                  |
+| Sambal Sotong Extra (Spicy Squid Sambal)          | 48              | 5                  | 4            | 3                  |
+| Fried Chicken Wing                                | 47              | 6                  | 6            | 4                  |
 
 </details>
 
-
 6. Find the top 2 dishes per channel.
+
+
+
+
 7. Calculate the running total of revenue by date.
 
+
+## Bonus Questions
 
 Which customer placed the earliest order in the dataset?
 Find all customers who ordered more than once on the same day.
