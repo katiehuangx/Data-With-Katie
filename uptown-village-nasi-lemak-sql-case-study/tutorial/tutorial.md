@@ -589,7 +589,20 @@ FROM dishes_popularity;
 
 6. Find the top 2 dishes per channel.
 
+TO CONTINUE!!!
 
+SELECT
+	channels.channel_name,
+    menu.food_name,
+    COUNT(orders.order_id) AS order_count
+FROM uptown_nasi_lemak.orders AS orders
+INNER JOIN uptown_nasi_lemak.order_channels AS channels
+	ON orders.channel_id = channels.channel_id
+INNER JOIN uptown_nasi_lemak.menu AS menu
+	ON orders.food_id = menu.food_id
+GROUP BY channels.channel_name,
+    menu.food_name
+ ORDER BY channels.channel_name, order_count DESC
 
 
 7. Calculate the running total of revenue by date.
