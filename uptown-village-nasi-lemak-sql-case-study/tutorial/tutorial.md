@@ -576,14 +576,15 @@ FROM dishes_popularity;
 ```
 
 ✅ Expected result:
-| **food_name**                                     | **order_count** | **row_number_seq** | **rank_seq** | **dense_rank_seq** |
-|---------------------------------------------------|-----------------|--------------------|--------------|--------------------|
-| Nasi Lemak Sotong (Squid Sambal Nasi Lemak)       | 53              | 1                  | 1            | 1                  |
-| Nasi Lemak Ayam Goreng (Fried Chicken Nasi Lemak) | 53              | 2                  | 1            | 1                  |
-| Nasi Lemak Telur Mata (Egg Nasi Lemak)            | 51              | 3                  | 3            | 2                  |
-| Teh Tarik (Pulled Milk Tea)                       | 48              | 4                  | 4            | 3                  |
-| Sambal Sotong Extra (Spicy Squid Sambal)          | 48              | 5                  | 4            | 3                  |
-| Fried Chicken Wing                                | 47              | 6                  | 6            | 4                  |
+| **food_name**                                     | **order_count** | **rank_seq** | **dense_rank_seq** | **row_number_seq** |
+|---------------------------------------------------|-----------------|--------------|--------------------|--------------------|
+| Nasi Lemak Sotong (Squid Sambal Nasi Lemak)       | 53              | 1            | 1                  | 1                  |
+| Nasi Lemak Ayam Goreng (Fried Chicken Nasi Lemak) | 53              | 1            | 1                  | 2                  |
+| Nasi Lemak Telur Mata (Egg Nasi Lemak)            | 51              | 3            | 2                  | 3                  |
+| Teh Tarik (Pulled Milk Tea)                       | 48              | 4            | 3                  | 4                  |
+| Sambal Sotong Extra (Spicy Squid Sambal)          | 48              | 4            | 3                  | 5                  |
+| Fried Chicken Wing                                | 47              | 6            | 4                  | 6                  |
+
 
 </details>
 
@@ -609,7 +610,8 @@ WITH customer_total_spending AS (
     customer_id,
     total_spend,
     DENSE_RANK() OVER (
-      PARTITION BY channel_name ORDER BY total_spend DESC) AS dense_rank_seq
+      PARTITION BY channel_name 
+      ORDER BY total_spend DESC) AS dense_rank_seq
   FROM customer_total_spending
 )
 
