@@ -569,9 +569,9 @@ WITH dishes_popularity AS (
 SELECT 
 	food_name,
   order_count,
-  ROW_NUMBER() OVER (ORDER BY order_count DESC) AS row_number_seq,
-	RANK() OVER (ORDER BY order_count DESC) AS rank_seq,
-	DENSE_RANK() OVER (ORDER BY order_count DESC) AS dense_rank_seq
+  RANK() OVER (ORDER BY order_count DESC) AS rank_seq,
+	DENSE_RANK() OVER (ORDER BY order_count DESC) AS dense_rank_seq,
+  ROW_NUMBER() OVER (ORDER BY order_count DESC) AS row_number_seq
 FROM dishes_popularity;
 ```
 
@@ -587,26 +587,62 @@ FROM dishes_popularity;
 
 </details>
 
-6. Find the top 2 dishes per channel.
+### 13. Within each channel, rank the top 2 customers by their total spend. If there are ties, customers should receive the same rank, and the next rank should not be skipped. Use the appropriate ranking window function.
 
-TO CONTINUE!!!
+<details> 
+<summary> ▶️ Show solution</summary>
 
-SELECT
-	channels.channel_name,
-    menu.food_name,
-    COUNT(orders.order_id) AS order_count
-FROM uptown_nasi_lemak.orders AS orders
-INNER JOIN uptown_nasi_lemak.order_channels AS channels
-	ON orders.channel_id = channels.channel_id
-INNER JOIN uptown_nasi_lemak.menu AS menu
-	ON orders.food_id = menu.food_id
-GROUP BY channels.channel_name,
-    menu.food_name
- ORDER BY channels.channel_name, order_count DESC
+```sql
+WITH customer_total_spending AS (
+  SELECT
+    channels.channel_name,
+    orders.customer_id,
+    SUM(orders.quantity*orders.unit_price) AS total_spend
+  FROM uptown_nasi_lemak.orders AS orders
+  INNER JOIN uptown_nasi_lemak.order_channels AS channels
+    ON orders.channel_id = channels.channel_id
+  GROUP BY channels.channel_name, orders.customer_id
+)
+, ranked_spending AS (
+  SELECT 
+    channel_name,
+    customer_id,
+    total_spend,
+    DENSE_RANK() OVER (
+      PARTITION BY channel_name ORDER BY total_spend DESC) AS dense_rank_seq
+  FROM customer_total_spending
+)
+
+SELECT 
+	channel_name,
+  customer_id,
+  total_spend,
+  dense_rank_seq
+FROM ranked_spending
+WHERE dense_rank_seq < 3;
+```
+
+✅ Expected result:
+| **channel_name** | **customer_id** | **total_spend** | **dense_rank_seq** |
+|--------------|-------------|-------------|----------------|
+| Dine-In      | C001        | 105.60      | 1              |
+| Dine-In      | C007        | 72.60       | 2              |
+| GrabFood     | C005        | 59.20       | 1              |
+| GrabFood     | C046        | 46.80       | 2              |
+| GrabFood     | C008        | 46.80       | 2              |
+| GrabFood     | C040        | 46.80       | 2              |
+| GrabFood     | C034        | 46.80       | 2              |
+| GrabFood     | C002        | 46.80       | 2              |
+| Takeaway     | C007        | 63.70       | 1              |
+| Takeaway     | C008        | 62.30       | 2              |
+
+</details>
+
+### 14. Calculate the running total of revenue by date.
 
 
-7. Calculate the running total of revenue by date.
 
+***
 
 ## Bonus Questions
 
