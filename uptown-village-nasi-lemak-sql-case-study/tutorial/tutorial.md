@@ -237,9 +237,9 @@ WHERE customer_id IS NULL;
 
 ---
 
-## 📙 SQL Tutorials: Beginner Level 1–3
+## 📙 SQL Tutorials: Beginner Section
 
-### 1. How many total orders were made?
+### 1. How many total orders are in the orders table?
 
 We’re simply counting all the rows in the `orders` table since each row represents one order. 
 
@@ -262,7 +262,29 @@ FROM uptown_nasi_lemak.orders;
 
 </details>
 
-### 2. List all the dishes on the menu along with their prices. Order the menu items by most expensive price on top.
+### 2. How many unique customers are there in the orders table?
+
+We’re finding how many different customers placed an order. That means counting distinct `customer_id`s rather than rows.
+
+- **Step 1:** Identify table with customer IDs → `uptown_nasi_lemak.orders`.
+- **Step 2:** Use `COUNT(DISTINCT customer_id)` to count unique values.
+
+<details> 
+<summary> ▶️ Show solution</summary>
+
+```sql
+SELECT COUNT(DISTINCT customer_id) AS unique_customers
+FROM uptown_nasi_lemak.orders;
+```
+
+✅ Expected result:
+| **unique_customers_count** |
+|----------------------------|
+| 50                         |
+
+</details>
+
+### 3. List all dishes on the menu along with their prices. Show the most expensive items first.
 
 - **Step 1:** Identify the table where the data is stored → `uptown_nasi_lemak.menu`.
 - **Step 2:** Select the columns you want to display → `food_name` and `unit_price`.
@@ -296,29 +318,7 @@ ORDER BY unit_price DESC;
 
 </details>
 
-### 3. What is the total number of unique customers?
-
-We’re finding how many different customers placed an order. That means counting distinct `customer_id`s rather than rows.
-
-- **Step 1:** Identify table with customer IDs → `uptown_nasi_lemak.orders`.
-- **Step 2:** Use `COUNT(DISTINCT customer_id)` to count unique values.
-
-<details> 
-<summary> ▶️ Show solution</summary>
-
-```sql
-SELECT COUNT(DISTINCT customer_id) AS unique_customers
-FROM uptown_nasi_lemak.orders;
-```
-
-✅ Expected result:
-| **unique_customers_count** |
-|----------------------------|
-| 50                         |
-
-</details>
-
-### 5. What is the total revenue made by the restaurant?
+### 4. What is the total revenue generated from all orders?
 
 📌 **Business Note:** Revenue tracking is the foundation of every financial report and is typically the first metric reviewed in monthly Profit & Loss.
 
@@ -340,7 +340,7 @@ FROM uptown_nasi_lemak.orders
 
 </details>
 
-### 9. Which customer spent the most in total?
+### 5. Which customer spent the most in total?
 
 📈 **Corporate Insight:** This is useful in sales in identify the **highest revenue-generating customer**. Businesses can then analyse their spending behavior and design loyalty programs *(in this case, membership cards which they stamp and you get free Nasi Lemak! 🍚)*, targeted campaigns, or premium offers to maximize retention.
 
@@ -368,7 +368,7 @@ LIMIT 1;
 
 </details>
 
-### 7. How many orders don’t have a customer_id recorded? (NULL handling)
+### 6. Show all orders where the customer_id is missing.
 
 <details> 
 <summary> ▶️ Show solution</summary>
@@ -390,9 +390,9 @@ WHERE customer_id IS NULL;
 
 ***
 
-## 🚦 SQL Tutorials: Intermediate Level 4-8
+## 🚦 SQL Tutorials: Intermediate Section
 
-### 4. How many times was each dish ordered? Sort results in ascending order by the count. 
+### 7. How many times was each dish ordered? Sort results in ascending order of the count. 
 We want to see the popularity of each menu item. 
 
 📌 **Business Note:** It might feel easier to group by `food_id` and output IDs, but in real-world reporting, IDs aren’t meaningful to business users. Showing the **actual dish names** makes the output presentation-ready, clearer, and more useful when sharing results with management.
@@ -427,9 +427,7 @@ ORDER BY no_of_dish_ordered ASC;
 
 </details>
 
-
-
-### 6. What is the total number of orders from each order channel? Sort results by the highest number of orders.
+### 8. How many orders came from each order channel? Sort results by the highest number of orders.
 
 We want to know how many orders came from Dine-In, Takeaway, and GrabFood. 
 
@@ -462,7 +460,7 @@ ORDER BY no_of_orders DESC;
 
 </details>
 
-### 10. Which dish generated the most revenue?
+### 9. Which dish generated the most revenue?
 
 📈 **Corporate Insight:** Knowing the top-earning dish helps restaurants decide what to feature on menus, run promotions for, or ensure that supply is never short.
 
@@ -489,9 +487,10 @@ LIMIT 1;
 | food_name         | highest_revenue_generated |
 | ----------------- | ---------------------- |
 | Sambal Sotong Extra (Spicy Squid Sambal) | 864.00                  |
+
 </details>
 
-### 10. What is the average order value (AOV) for each channel? Round to the nearest 2 decimal points.
+### 10. What is the average order value (AOV) for each channel? Round the results to 2 decimal points.
 
 - **Step 1:** Join `uptown_nasi_lemak.orders` and `uptown_nasi_lemak.order_channels` to link orders with channels.
 - **Step 2:** Mutiply `quantity` and `unit_price` to retrieve order values.
@@ -523,11 +522,63 @@ ORDER BY avg_order_value DESC;
 
 📈 **Corporate Insight:** Average order value (AOV) is a key business metric. It helps identify which sales channels (e.g., dine-in, takeaway, delivery) bring in higher-value customers. Companies can then prioritize or optimize the most profitable channels.
 
+### 11. Which customers have placed more than 5 orders?
+
+<details> 
+<summary> ▶️ Show solution</summary>
+
+```sql
+SELECT customer_id AS more_than_5_orders
+FROM uptown_nasi_lemak.orders
+GROUP BY customer_id
+HAVING COUNT(customer_id) > 5;
+```
+
+✅ Expected result: 
+| **more_than_5_orders** |
+|----------------------------------|
+| C007                             |
+| C009                             |
+| C001                             |
+| C008                             |
+| C010                             |
+| C003                             |
+| C005                             |
+| C002                             |
+| C004                             |
+| C006                             |
+
+</details>
+
+### 12. Calculate the total revenue for each month.
+<details> 
+<summary> ▶️ Show solution</summary>
+
+```sql
+SELECT
+  TO_CHAR(order_date, 'YYYY-MM') AS mth,
+  SUM(quantity*unit_price) AS total_revenue
+FROM uptown_nasi_lemak.orders
+GROUP BY TO_CHAR(order_date, 'YYYY-MM')
+ORDER BY mth;
+```
+
+✅ Expected result: 
+| **mth** | **total_revenue** |
+|---------|-------------------|
+| 2025-01 | 2670.50           |
+| 2025-02 | 355.20            |
+| 2025-03 | 395.40            |
+| 2025-04 | 371.00            |
+| 2025-05 | 102.20            |
+
+</details>
+
 ***
 
 ## 🔥 SQL Tutorials: Advanced Level 9–15
 
-### 12. Rank dishes by the number of times they were ordered. Use RANK(), DENSE_RANK(), and ROW_NUMBER() to demonstrate the differences in ranking when multiple dishes have the same order count.
+### 13. Rank all dishes by the number of times they were ordered. Use RANK(), DENSE_RANK(), and ROW_NUMBER() to demonstrate the differences in ranking when multiple dishes have the same order count.
 
 <details> 
 <summary> ▶️ Show solution</summary>
@@ -564,7 +615,7 @@ FROM dishes_popularity;
 
 </details>
 
-### 13. Within each channel, rank the top 2 customers by their total spend. If there are ties, customers should receive the same rank, and the next rank should not be skipped. Use the appropriate ranking window function.
+### 14. Within each channel, rank the top 2 customers by their total spend. If there are ties, customers should receive the same rank and the next rank should not be skipped. Use the appropriate ranking function.
 
 <details> 
 <summary> ▶️ Show solution</summary>
@@ -616,7 +667,7 @@ WHERE dense_rank_seq < 3;
 
 </details>
 
-### 14. Calculate the monthly revenue and show both the running total to date and the month-over-month percentage change.
+### 15. Calculate the monthly revenue. For each month, display the total revenue, the running total up to that month, and the month-over-month percentage change compared to the previous month.
 
 <details> 
 <summary> ▶️ Show solution</summary>
