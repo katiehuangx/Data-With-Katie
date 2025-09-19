@@ -642,25 +642,38 @@ WHERE dense_rank_seq < 3;
 
 ### 14. Calculate the monthly revenue and show both the running total to date and the month-over-month percentage change.
 
-TBC!!! work out the lag 
+<details> 
+<summary> ▶️ Show solution</summary>
 
+```sql
 WITH revenue_by_mth AS (
-SELECT
-  	TO_CHAR(order_date, 'YYYY-MM') AS order_mth,
+  SELECT
+    TO_CHAR(order_date, 'YYYY-MM') AS order_mth,
     SUM(quantity*unit_price) AS total_revenue
-FROM uptown_nasi_lemak.orders
-GROUP BY TO_CHAR(order_date, 'YYYY-MM')
+  FROM uptown_nasi_lemak.orders
+  GROUP BY TO_CHAR(order_date, 'YYYY-MM')
 )
 
 SELECT
 	order_mth,
-    total_revenue,
-    SUM(total_revenue) OVER (ORDER BY order_mth) AS running_total,
-    LAG(total_revenue) OVER (ORDER BY order_mth) AS lag_revenue
-FROM revenue_by_mth
+  total_revenue,
+  SUM(total_revenue) OVER (ORDER BY order_mth) AS running_total,
+  ROUND(
+    100.0*(total_revenue - LAG(total_revenue) OVER (ORDER BY order_mth))
+    /LAG(total_revenue) OVER (ORDER BY order_mth),1) AS pct_change
+FROM revenue_by_mth;
+```
 
+✅ Expected result:
+| **order_mth** | **total_revenue** | **running_total** | **pct_change** |
+|---------------|-------------------|-------------------|----------------|
+| 2025-01       | 2670.50           | 2670.50           | null           |
+| 2025-02       | 355.20            | 3025.70           | -86.7          |
+| 2025-03       | 395.40            | 3421.10           | 11.3           |
+| 2025-04       | 371.00            | 3792.10           | -6.2           |
+| 2025-05       | 102.20            | 3894.30           | -72.5          |
 
-
+</details>
 
 ***
 
