@@ -640,7 +640,25 @@ WHERE dense_rank_seq < 3;
 
 </details>
 
-### 14. Calculate the running total of revenue by date.
+### 14. Calculate the monthly revenue and show both the running total to date and the month-over-month percentage change.
+
+TBC!!! work out the lag 
+
+WITH revenue_by_mth AS (
+SELECT
+  	TO_CHAR(order_date, 'YYYY-MM') AS order_mth,
+    SUM(quantity*unit_price) AS total_revenue
+FROM uptown_nasi_lemak.orders
+GROUP BY TO_CHAR(order_date, 'YYYY-MM')
+)
+
+SELECT
+	order_mth,
+    total_revenue,
+    SUM(total_revenue) OVER (ORDER BY order_mth) AS running_total,
+    LAG(total_revenue) OVER (ORDER BY order_mth) AS lag_revenue
+FROM revenue_by_mth
+
 
 
 
