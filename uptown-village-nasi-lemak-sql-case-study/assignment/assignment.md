@@ -9,7 +9,16 @@ KPIs: Total Revenue, Revenue by Channel, Growth Rate, Best-Selling Product, Roll
 <summary> ▶️ Show solution</summary>
 
 ```sql
-
+SELECT
+    channels.channel_name,
+    SUM(menu.price) AS total_revenue
+FROM uptown_nasi_lemak.sales AS sales
+INNER JOIN uptown_nasi_lemak.menu AS menu
+    ON sales.food_id = menu.food_id
+INNER JOIN uptown_nasi_lemak.order_channels AS channels
+    ON sales.channel_id = channels.channel_id
+GROUP BY channels.channel_name
+ORDER BY total_revenue DESC;
 ```
 
 ✅ Expected result:
