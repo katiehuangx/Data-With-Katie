@@ -35,7 +35,7 @@ LIMIT 15;
 ```
 
 ✅ Expected result: 
-| **order_id** | **customer_id** | **order_date** | **menu_id** | **channel_id** | **quantity** | **unit_price** |
+| **order_id** | **customer_id** | **order_date** | **menu_id** | **channel_id** | **quantity** | **price** |
 |---|---|---|---|---|---|---|
 | 1 | C001 | 2025-01-01 | F02 | 1 | 1 | 15.80 |
 | 2 | C002 | 2025-01-01 | F01 | 1 | 1 | 12.20 |
@@ -62,7 +62,7 @@ LIMIT 5;
 ```
 
 ✅ Expected result: 
-| **food_id** | **food_name** | **unit_price** | **category** |
+| **food_id** | **food_name** | **price** | **category** |
 |---|---|---|---|
 | F01 | Nasi Lemak Ayam Goreng (Fried Chicken Nasi Lemak) | 12.00 | Main |
 | F02 | Nasi Lemak Sotong (Squid Sambal Nasi Lemak) | 14.50 | Main |
@@ -98,8 +98,8 @@ FROM uptown_nasi_lemak.order_channels;
 
 ```sql
 SELECT 
-	MAX(unit_price),
-  MIN(unit_price)
+	MAX(price),
+  MIN(price)
 FROM uptown_nasi_lemak.orders;
 ```
 
@@ -140,7 +140,7 @@ WHERE channel_id = 1;
 
 ✅ Expected result: 
 Result has 108 rows, so we're only showing you the first 5 rows of orders. 
-| **order_id** | **customer_id** | **order_date** | **menu_id** | **channel_id** | **quantity** | **unit_price** |
+| **order_id** | **customer_id** | **order_date** | **menu_id** | **channel_id** | **quantity** | **price** |
 |--------------|-----------------|----------------|-------------|----------------|--------------|----------------|
 | 1            | C001            | 2025-01-01     | F02         | 1              | 1            | 15.80          |
 | 2            | C002            | 2025-01-01     | F01         | 1              | 1            | 12.20          |
@@ -287,7 +287,7 @@ FROM uptown_nasi_lemak.orders;
 ### 3. List all dishes on the menu along with their prices. Show the most expensive items first.
 
 - **Step 1:** Identify the table where the data is stored → `uptown_nasi_lemak.menu`.
-- **Step 2:** Select the columns you want to display → `food_name` and `unit_price`.
+- **Step 2:** Select the columns you want to display → `food_name` and `price`.
 - **Step 3:** Sort the results so that the most expensive dishes appear first → `ORDER BY ... DESC`
 
 <details> 
@@ -296,13 +296,13 @@ FROM uptown_nasi_lemak.orders;
 ```sql
 SELECT 
   food_name, 
-  unit_price
+  price
 FROM uptown_nasi_lemak.menu
-ORDER BY unit_price DESC;
+ORDER BY price DESC;
 ```
 
 ✅ Expected result: 
-| **food_name**                                                      | **unit_price** |
+| **food_name**                                                      | **price** |
 |--------------------------------------------------------------------|----------------|
 | Nasi Lemak Sotong (Squid Sambal Nasi Lemak)                        | 14.50          |
 | Nasi Lemak Ayam Goreng (Fried Chicken Nasi Lemak)                  | 12.00          |
@@ -322,14 +322,14 @@ ORDER BY unit_price DESC;
 
 📌 **Business Note:** Revenue tracking is the foundation of every financial report and is typically the first metric reviewed in monthly Profit & Loss.
 
-- **Step 1:** Use the `uptown_nasi_lemak.orders` table to retrieve the order quantity and unit price of food.
-- **Step 2:** Mutiply `quantity` and `unit_price` then apply `SUM` to add up revenue from all rows.
+- **Step 1:** Use the `uptown_nasi_lemak.orders` table to retrieve the order quantity and price of food.
+- **Step 2:** Mutiply `quantity` and `price` then apply `SUM` to add up revenue from all rows.
 
 <details> 
 <summary> ▶️ Show solution</summary>
 
 ```sql
-SELECT SUM(quantity * unit_price) AS total_revenue
+SELECT SUM(quantity * ![alt text](image.png)) AS total_revenue
 FROM uptown_nasi_lemak.orders
 ```
 
@@ -354,7 +354,7 @@ FROM uptown_nasi_lemak.orders
 ```sql
 SELECT 
 	customer_id,
-  SUM(quantity*unit_price) AS total_spent
+  SUM(quantity*price) AS total_spent
 FROM uptown_nasi_lemak.orders
 GROUP BY customer_id
 ORDER BY total_spent DESC
@@ -380,7 +380,7 @@ WHERE customer_id IS NULL;
 ```
 
 ✅ Expected result:  
-| **order_id** | **customer_id** | **order_date** | **food_id** | **channel_id** | **quantity** | **unit_price** |
+| **order_id** | **customer_id** | **order_date** | **food_id** | **channel_id** | **quantity** | **price** |
 |--------------|-----------------|----------------|-------------|----------------|--------------|----------------|
 | 13           | null            | 2025-01-04     | F01         | 1              | 1            | 12.20          |
 | 43           | null            | 2025-01-13     | F01         | 1              | 1            | 12.20          |
@@ -493,7 +493,7 @@ LIMIT 1;
 ### 10. What is the average order value (AOV) for each channel? Round the results to 2 decimal points.
 
 - **Step 1:** Join `uptown_nasi_lemak.orders` and `uptown_nasi_lemak.order_channels` to link orders with channels.
-- **Step 2:** Mutiply `quantity` and `unit_price` to retrieve order values.
+- **Step 2:** Mutiply `quantity` and `price` to retrieve order values.
 - **Step 3:** Apply `AVG` on order values and round to 2 decimals for readability.
 - **Step 4:** Order results to easily see which channel has the highest AOV.
 
@@ -503,7 +503,7 @@ LIMIT 1;
 ```sql
 SELECT 
   channels.channel_name,
-  ROUND(AVG(orders.quantity*unit_price),2) AS avg_order_value
+  ROUND(AVG(orders.quantity*price),2) AS avg_order_value
 FROM uptown_nasi_lemak.orders AS orders
 INNER JOIN uptown_nasi_lemak.order_channels AS channels
   ON orders.channel_id = channels.channel_id
@@ -557,7 +557,7 @@ HAVING COUNT(customer_id) > 5;
 ```sql
 SELECT
   TO_CHAR(order_date, 'YYYY-MM') AS mth,
-  SUM(quantity*unit_price) AS total_revenue
+  SUM(quantity*price) AS total_revenue
 FROM uptown_nasi_lemak.orders
 GROUP BY TO_CHAR(order_date, 'YYYY-MM')
 ORDER BY mth;
@@ -625,7 +625,7 @@ WITH customer_total_spending AS (
   SELECT
     channels.channel_name,
     orders.customer_id,
-    SUM(orders.quantity*orders.unit_price) AS total_spend
+    SUM(orders.quantity*orders.price) AS total_spend
   FROM uptown_nasi_lemak.orders AS orders
   INNER JOIN uptown_nasi_lemak.order_channels AS channels
     ON orders.channel_id = channels.channel_id
@@ -676,7 +676,7 @@ WHERE dense_rank_seq < 3;
 WITH revenue_by_mth AS (
   SELECT
     TO_CHAR(order_date, 'YYYY-MM') AS order_mth,
-    SUM(quantity*unit_price) AS total_revenue
+    SUM(quantity*price) AS total_revenue
   FROM uptown_nasi_lemak.orders
   GROUP BY TO_CHAR(order_date, 'YYYY-MM')
 )
