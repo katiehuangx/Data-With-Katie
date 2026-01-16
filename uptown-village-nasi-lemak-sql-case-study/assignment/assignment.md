@@ -30,17 +30,49 @@ ORDER BY revenue_perc DESC;
 
 </details>
 
-### 2. Rank dishes by daily revenue per channel (best-selling dish each day) and identify the best-selling dish each day.
+### 2. For each channel, identify the best-selling dish based on total revenue.
 
 <details> 
 <summary> ▶️ Show solution</summary>
 
 ```sql
+WITH food_revenue AS (
+    SELECT
+        channels.channel_name,
+        menu.food_name, 
+        SUM(orders.price*orders.quantity) AS total_revenue
+    FROM uptown_nasi_lemak.orders AS orders
+    INNER JOIN uptown_nasi_lemak.order_channels AS channels
+        ON orders.channel_id = channels.channel_id
+    INNER JOIN uptown_nasi_lemak.menu AS menu
+        ON orders.food_id = menu.food_id
+    GROUP BY channels.channel_name, menu.food_name
+),
+ranked_dishes AS (
+    SELECT
+        channel_name,
+        food_name,
+        total_revenue,
+        ROW_NUMBER () OVER 
+            (PARTITION BY channel_name
+            ORDER BY total_revenue DESC) AS row_no
+    FROM food_revenue
+)
 
+SELECT 
+	channel_name,
+	food_name,
+	total_revenue
+FROM ranked_dishes
+WHERE row_no = 1;
 ```
 
 ✅ Expected result:
-
+| **channel_name** | **revenue** | **revenue_perc** |
+|------------------|-------------|------------------|
+| Takeaway         | 1547.90     | 39.75            |
+| GrabFood         | 1181.60     | 30.34            |
+| Dine-In          | 1164.80     | 29.91            |
 
 </details>
 
