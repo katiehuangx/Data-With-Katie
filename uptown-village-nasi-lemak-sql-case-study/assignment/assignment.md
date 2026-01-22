@@ -76,17 +76,48 @@ WHERE row_no = 1;
 
 </details>
 
-### 3. For each date, calculate the 7-day rolling average revenue.
+### 3. For each date, calculate the 7-day rolling average revenue in January.
+
+Info: There are no missing days in January. 
 
 <details> 
 <summary> ▶️ Show solution</summary>
 
 ```sql
+WITH daily_revenue_cte AS (
+    SELECT 
+        order_date,
+        SUM(quantity*price) AS daily_revenue
+    FROM uptown_nasi_lemak.orders
+    WHERE EXTRACT(MONTH FROM order_date) = 1
+    GROUP BY order_date
+)
 
+SELECT 
+	order_date,
+	daily_revenue,
+    ROUND(AVG(daily_revenue) OVER (
+      ORDER BY order_date
+      ROWS BETWEEN 6 PRECEDING AND CURRENT ROW),2) AS avg_7d_rolling_revenue
+FROM daily_revenue_cte
 ```
 
 ✅ Expected result:
+| order_date | daily_revenue | avg_7d_rolling_revenue |
+| ---------- | ------------- | ---------------------- |
+| 2025-01-01 | 86.50         | 86.50                  |
+| 2025-01-02 | 115.60        | 101.05                 |
+| 2025-01-03 | 150.70        | 117.60                 |
+| 2025-01-04 | 115.70        | 117.13                 |
+| 2025-01-05 | 131.50        | 120.00                 |
+| 2025-01-06 | 164.00        | 127.33                 |
+| 2025-01-07 | 99.40         | 123.34                 |
+| 2025-01-08 | 128.60        | 129.36                 |
 
+For each day in January:
+- Take the current day - 7 January
+- Look back up to 6 previous days and c ompute the average revenue across those days - 1 to 6 January
+- The first complete window happens on January 7.
 
 </details>
 
@@ -103,13 +134,23 @@ KPIs: Customer Lifetime Value (CLV), Retention Rate, Spend Buckets, Multi-Channe
 <summary> ▶️ Show solution</summary>
 
 ```sql
-
+SELECT 
+	customer_id,
+    SUM(quantity*price) AS total_spend
+FROM uptown_nasi_lemak.orders
+GROUP BY customer_id
+ORDER BY total_spend DESC
+LIMIT 5;
 ```
 
 ✅ Expected result:
-| **count** |
-|-----------|
-| 297       |
+| customer_id | total_spend |
+| ----------- | ----------- |
+| C007        | 176.20      |
+| C008        | 168.90      |
+| C001        | 162.70      |
+| C009        | 132.60      |
+| C002        | 125.90      |
 
 </details>
 
