@@ -1,140 +1,4 @@
-## 🌱 Absolute Beginner Section: SQL Sandbox
-
-Visual guide to understand table relationships:
-<p align="left">
-  <img src="https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-village-nasi-lemak-sql-case-study/assets/erd.png" alt="Uptown Nasi Lemak ERD" width="700"/>
-</p>
-
-Link to Entity Relationship (ER) diagram: [here](https://github.com/katiehuangx/Data-With-Katie/blob/main/uptown-nasi-lemak-sql-case-study/assets/erd.png)
-
-### 1. Show the first 10 rows of the orders table.
-
-<details> 
-<summary> ▶️ Show solution (Click to expand) </summary>
-
-```sql
-SELECT *
-FROM uptown_nasi_lemak.orders
-LIMIT 15;
-```
-
-✅ Expected result: 
-| **order_id** | **customer_id** | **order_date** | **menu_id** | **channel_id** | **quantity** | **price** |
-|---|---|---|---|---|---|---|
-| 1 | C001 | 2025-01-01 | F02 | 1 | 1 | 15.80 |
-| 2 | C002 | 2025-01-01 | F01 | 1 | 1 | 12.20 |
-| 3 | C003 | 2025-01-01 | F03 | 2 | 1 | 8.90 |
-| 4 | C004 | 2025-01-02 | F01 | 2 | 1 | 12.20 |
-| 5 | C005 | 2025-01-02 | F04 | 3 | 2 | 3.80 |
-| 6 | C006 | 2025-01-02 | F02 | 1 | 1 | 15.80 |
-| 7 | C007 | 2025-01-03 | F05 | 1 | 1 | 18.00 |
-| 8 | C008 | 2025-01-03 | F06 | 2 | 2 | 15.50 |
-| 9 | C009 | 2025-01-03 | F01 | 3 | 1 | 12.20 |
-| 10 | C010 | 2025-01-03 | F03 | 1 | 1 | 8.90 |
-
-</details>
-
-### 2. Show the first 5 rows of the menu table.
-
-<details> 
-<summary> ▶️ Show solution (Click to expand) </summary>
-
-```sql
-SELECT *
-FROM uptown_nasi_lemak.menu
-LIMIT 5;
-```
-
-✅ Expected result: 
-| **food_id** | **food_name** | **price** | **category** |
-|---|---|---|---|
-| F01 | Nasi Lemak Ayam Goreng (Fried Chicken Nasi Lemak) | 12.00 | Main |
-| F02 | Nasi Lemak Sotong (Squid Sambal Nasi Lemak) | 14.50 | Main |
-| F03 | Nasi Lemak Telur Mata (Egg Nasi Lemak) | 7.50 | Main |
-| F04 | Teh Tarik (Pulled Milk Tea) | 3.50 | Beverage |
-| F05 | Sambal Sotong Extra (Spicy Squid Sambal) | 6.50 | Side |
-
-</details>
-
-### 3. List all unique channel name values.
-
-<details> 
-<summary> ▶️ Show solution (Click to expand) </summary>
-
-```sql
-SELECT DISTINCT channel_name
-FROM uptown_nasi_lemak.order_channels;
-```
-
-✅ Expected result: 
-| **channel_name** |
-|------------------|
-| GrabFood         |
-| Takeaway         |
-| Dine-In          |
-
-</details>
-
-### 4. What is the highest and lowest price in the menu? 
-
-<details> 
-<summary> ▶️ Show solution</summary>
-
-```sql
-SELECT 
-	MAX(price),
-  MIN(price)
-FROM uptown_nasi_lemak.orders;
-```
-
-✅ Expected result: 
-| **max** | **min** |
-|---------|---------|
-| 18.00   | 3.80    |
-
-</details>
-
-### 5. How many dishes are in the menu table?
-
-<details> 
-<summary> ▶️ Show solution</summary>
-
-```sql
-SELECT COUNT(*)
-FROM uptown_nasi_lemak.menu;
-```
-
-✅ Expected result: 
-| **count** |
-|-----------|
-| 10        |
-
-</details>
-
-### 6. Find the first and last order dates in the orders table.
-
-<details> 
-<summary> ▶️ Show solution</summary>
-
-```sql
-SELECT 
-	MIN(order_date),
-  MAX(order_date)
-FROM uptown_nasi_lemak.orders;
-```
-
-✅ Expected result: 
-The earliest order is on January 1st, 2025 and latest order on May 7th, 2025.
-| **min**    | **max**    |
-|------------|------------|
-| 2025-01-01 | 2025-05-07 |
-
-</details>
-
-
----
-
-## 📙 SQL Tutorial: Beginner Section
+# SQL Tutorial
 
 The tutorial questions are arranged in increasing difficulty ⬆️. We'll start with basics (**counting rows, selecting unique values and summing totals**) and gradually move into more advanced concepts (**joins, HAVING and CTEs**). 
 
@@ -143,6 +7,8 @@ Each question comes with a short explanation of the concept it teaches, so you c
 If you’d like to:
 - Check your answers → click the **▶️ Show solution 💡** toggle in each question to expand the solution. 
 - Practice on your own or add into your portfolio → use the questions_only.md and insert your own solutions.
+
+## 📙 SQL Basics
 
 ### 1. How many total orders are in the orders table?
 
@@ -247,7 +113,7 @@ FROM uptown_nasi_lemak.orders
 
 ***
 
-## 🚦 SQL Tutorial: Intermediate Section
+## 🚦 SQL Intermediate
 
 ### 1. How many times was each dish ordered? Sort results in ascending order.
 We want to see the popularity of each menu item. 
@@ -405,7 +271,7 @@ ORDER BY mth;
 
 ***
 
-## 🔥 SQL Tutorial: Advanced Level
+## 🔥 SQL Advanced
 
 ### 1. Rank dishes by the number of times they were ordered using RANK(), DENSE_RANK(), and ROW_NUMBER().
 
