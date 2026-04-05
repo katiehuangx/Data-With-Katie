@@ -1,16 +1,16 @@
-# SQL Tutorial
+# 📚 SQL Tutorial
 
-The tutorial questions are arranged in increasing difficulty ⬆️. Each question comes with a short explanation of the concept it teaches, so you can practice and build your confidence step by step. 😉
+The tutorial questions are arranged in increasing difficulty. Each question comes with steps and a short explanation of the concept it teaches, so you can practice and build your confidence step by step. 😉
 
 📝 Note from Katie:
-- If you want to check your answers → click on the **▶️ Show solution 💡** toggle under each question to view the solution. 
-- I highly *highly* suggest you to practice on your own in the DB Fiddle - SQL Data Playground or better yet - add this into your portfolio → You can use the questions_only.md and insert your own solutions in. Drop me a message on Linkedin if you need help on this!
+- To check your answers → click on the **▶️ Show solution** toggle under each question to view the solution. 
+- I highly *highly* suggest you to practice on your own in the DB Fiddle - SQL Data Playground or better yet, add this into your portfolio → You can use the questions_only.md and insert your own solutions in. Drop me a message on Linkedin if you need help on this!
 
-## 1. How many total orders are in the orders table?
+## 1. How many total orders has the restaurant received?
 
-We’re simply counting all the rows in the `orders` table since each row represents one order. 
+In SQL talk: Count the number of rows in the `orders` table. 
 
-- **Step 1:** Identify the table where the data is from → `uptown_nasi_lemak.orders`. 
+- **Step 1:** Identify table where the data is from → `uptown_nasi_lemak.orders`. 
 - **Step 2:** Use `COUNT(*)` or `COUNT(order_id)` to count the rows. 
 - **Step 3:** Give the result a meaningful column name `AS total_orders`.
 
@@ -23,15 +23,15 @@ FROM uptown_nasi_lemak.orders;
 ```
 
 ✅ Expected result:
-| **total_orders_count** |
-|------------------------|
+| **total_orders** |
+ |------------------------|
 | 300                    |
 
 </details>
 
-## 2. How many unique customers are there in the orders table?
+## 2. How many unique customers are have placed at least one order?
 
-We’re finding how many different customers placed an order. That means counting distinct `customer_id`s rather than rows.
+In SQL talk: Use the `orders` table to calculate the total number of distinct customers.
 
 - **Step 1:** Identify table with customer IDs → `uptown_nasi_lemak.orders`.
 - **Step 2:** Use `COUNT(DISTINCT customer_id)` to count unique values.
@@ -45,15 +45,17 @@ FROM uptown_nasi_lemak.orders;
 ```
 
 ✅ Expected result:
-| **unique_customers_count** |
+| **unique_customers** |
 |----------------------------|
 | 50                         |
 
 </details>
 
-### 3. List all dishes on the menu along with their prices. Show the most expensive items first.
+## 3. What does our menu pricing look like, starting from the most expensive dishes.
 
-- **Step 1:** Identify the table where the data is stored → `uptown_nasi_lemak.menu`.
+In SQL talk: Use the menu table to list all dishes and their prices, sorted from highest to lowest price.
+
+- **Step 1:** Identify table where data is stored → `uptown_nasi_lemak.menu`.
 - **Step 2:** Select the columns you want to display → `food_name` and `price`.
 - **Step 3:** Sort the results so that the most expensive dishes appear first → `ORDER BY ... DESC`
 
@@ -85,18 +87,20 @@ ORDER BY price DESC;
 
 </details>
 
-### 4. What is the total revenue generated from all orders?
+### 4. How much total revenue has the restaurant generated from all customer orders?
 
-📌 **Business Note:** Revenue tracking is the foundation of every financial report and is typically the first metric reviewed in monthly Profit & Loss.
+In SQL talk: Calculate total revenue by summing the value of all completed orders.
 
-- **Step 1:** Use the `uptown_nasi_lemak.orders` table to retrieve the order quantity and price of food.
+📌 **Why is this important to businesses?:** Revenue tracking is the foundation of every financial report and is typically the first metric reviewed in the monthly Profit & Loss.
+
+- **Step 1:** Use `uptown_nasi_lemak.orders` table to retrieve the order quantity and price of food.
 - **Step 2:** Mutiply `quantity` and `price` then apply `SUM` to add up revenue from all rows.
 
 <details> 
 <summary> ▶️ Show solution</summary>
 
 ```sql
-SELECT SUM(quantity * ![alt text](image.png)) AS total_revenue
+SELECT SUM(quantity*price) AS total_revenue
 FROM uptown_nasi_lemak.orders
 ```
 
@@ -107,14 +111,10 @@ FROM uptown_nasi_lemak.orders
 
 </details>
 
-***
 
-## 🚦 SQL Intermediate
+## 5. Which dishes are the most popular based on number of orders? Sort results in descending order.
 
-### 1. How many times was each dish ordered? Sort results in ascending order.
-We want to see the popularity of each menu item. 
-
-📌 **Business Note:** It might feel easier to group by `food_id` and output IDs, but in real-world reporting, IDs aren’t meaningful to business users. Showing the **actual dish names** makes the output presentation-ready, clearer, and more useful when sharing results with management.
+In SQL talk: Count how many times each dish was ordered and rank them from most to least ordered.
 
 - **Step 1:** Join the `uptown_nasi_lemak.orders` and `uptown_nasi_lemak.menu` to match orders with dish names.  
 - **Step 2:** Use `COUNT(order_id)` grouped by `food_name` to find the number of times each dish was ordered.  
@@ -134,6 +134,8 @@ GROUP BY menu.food_name
 ORDER BY no_of_dish_ordered ASC;
 ```
 
+📌 It might feel easier to group by `food_id` and output the IDs, but in real-world reporting, IDs alone aren’t meaningful to business users. Showing the **actual dish names** makes the output presentation-ready, clearer and more useful when sharing results with management.
+
 ✅ Expected result:
 | **food_name**                                     | **no_of_dish_ordered** |
 |---------------------------------------------------|------------------------|
@@ -146,15 +148,15 @@ ORDER BY no_of_dish_ordered ASC;
 
 </details>
 
-### 2. How many orders came from each order channel? Sort results by highest number of orders.
+## 6. Which order channels bring in the most orders? Sort results by highest number of orders.
 
-We want to know how many orders came from Dine-In, Takeaway, and GrabFood. 
+In SQL talk: Group orders by channel and rank channels by total order volume.
 
 - **Step 1:** Join `uptown_nasi_lemak.orders` with `uptown_nasi_lemak.order_channels` using `channel_id`.
 - **Step 2:** Count how many `order_id` values appear for each channel.
 - **Step 3:** Group by `channel_name` and sort results.
 
-📌 **Business Note:** Splitting by channel helps businesses evaluate the ROI of delivery partnerships and optimize staff allocation across delivery vs. dine-in vs. takeaway.
+📌 Splitting by channel helps businesses evaluate the return on investment (ROI) of delivery partnerships and optimize staff allocation across delivery vs. dine-in vs. takeaway.
 
 <details> 
 <summary> ▶️ Show solution</summary>
@@ -179,7 +181,9 @@ ORDER BY no_of_orders DESC;
 
 </details>
 
-### 3. Which dish generated the most revenue?
+## 7. Which menu item generated the most revenue?
+
+In SQL talk: Calculate revenue by dish and identify the top-performing menu item.
 
 📈 **Corporate Insight:** Knowing the top-earning dish helps restaurants decide what to feature on menus, run promotions for, or ensure that supply is never short.
 
@@ -209,7 +213,7 @@ LIMIT 1;
 
 </details>
 
-### 4. What is the average order value (AOV) for each channel? Round results to 2 decimal points.
+## 8. Which order channels drive the highest average spend per order? Round results to 2 decimal points.
 
 - **Step 1:** Join `uptown_nasi_lemak.orders` and `uptown_nasi_lemak.order_channels` to link orders with channels.
 - **Step 2:** Mutiply `quantity` and `price` to retrieve order values.
@@ -241,7 +245,8 @@ ORDER BY avg_order_value DESC;
 
 📈 **Corporate Insight:** Average order value (AOV) is a key business metric. It helps identify which sales channels (e.g., dine-in, takeaway, delivery) bring in higher-value customers. Companies can then prioritize or optimize the most profitable channels.
 
-### 5. Calculate the total revenue for each month.
+## 9. How is the restaurant’s revenue trending month by month? Calculate the total revenue by month.
+
 <details> 
 <summary> ▶️ Show solution</summary>
 
@@ -265,11 +270,7 @@ ORDER BY mth;
 
 </details>
 
-***
-
-## 🔥 SQL Advanced
-
-### 1. Rank dishes by the number of times they were ordered using RANK(), DENSE_RANK(), and ROW_NUMBER().
+## 10. Rank dishes based on the total order using RANK(), DENSE_RANK() and ROW_NUMBER().
 
 <details> 
 <summary> ▶️ Show solution</summary>
@@ -306,7 +307,7 @@ FROM dishes_popularity;
 
 </details>
 
-### 2. Within each channel, rank the top 2 customers by their total spend using a ranking function that does not skip ranks. 
+## 11. Within each channel, rank customers by total spend using DENSE_RANK() and return the top 2.  
 
 <details> 
 <summary> ▶️ Show solution</summary>
@@ -358,7 +359,7 @@ WHERE dense_rank_seq < 3;
 
 </details>
 
-### 3. Calculate the monthly revenue and show the running total and month-over-month percentage change.
+## 12. Calculate the monthly revenue and show the running total and month-over-month percentage change.
 
 <details> 
 <summary> ▶️ Show solution</summary>
