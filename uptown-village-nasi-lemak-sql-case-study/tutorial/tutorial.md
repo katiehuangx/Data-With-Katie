@@ -1,19 +1,3 @@
-# 📝 SQL Tutorial 
-
-This tutorial is an introduction to SQL using a fun dataset inspired by a local Malaysian favourite: *Village Park Nasi Lemak 🍚🌶️🐔*. 
-
-*(I'm Malaysian 🇲🇾 and I love Village Park's nasi lemak with crispy fried chicken 🍗 or what we call "ayam goreng" in Malay.)*
-
-The tutorial questions are arranged in increasing difficulty ⬆️. We'll start with basics (**counting rows, selecting unique values and summing totals**) and gradually move into more advanced concepts (**joins, HAVING and CTEs**). 
-
-Each question comes with a short explanation of the concept it teaches, so you can practice and build confidence step by step. 😉
-
-If you’d like to:
-- Check your answers → click the **▶️ Show solution 💡** toggle in each question to expand the solution. 
-- Practice on your own or add into your portfolio → use the questions_only.md and insert your own solutions.
-
----
-
 ## 🌱 Absolute Beginner Section: SQL Sandbox
 
 Visual guide to understand table relationships:
@@ -151,6 +135,14 @@ The earliest order is on January 1st, 2025 and latest order on May 7th, 2025.
 ---
 
 ## 📙 SQL Tutorial: Beginner Section
+
+The tutorial questions are arranged in increasing difficulty ⬆️. We'll start with basics (**counting rows, selecting unique values and summing totals**) and gradually move into more advanced concepts (**joins, HAVING and CTEs**). 
+
+Each question comes with a short explanation of the concept it teaches, so you can practice and build confidence step by step. 😉
+
+If you’d like to:
+- Check your answers → click the **▶️ Show solution 💡** toggle in each question to expand the solution. 
+- Practice on your own or add into your portfolio → use the questions_only.md and insert your own solutions.
 
 ### 1. How many total orders are in the orders table?
 
@@ -339,7 +331,7 @@ ORDER BY no_of_orders DESC;
 ```sql
 SELECT 
 	menu.food_name,
-  SUM(orders.quantity*orders.unit_price) AS highest_revenue_generated
+  SUM(orders.quantity*orders.price) AS highest_revenue_generated
 FROM uptown_nasi_lemak.orders AS orders
 INNER JOIN uptown_nasi_lemak.menu AS menu
 	ON orders.food_id = menu.food_id
