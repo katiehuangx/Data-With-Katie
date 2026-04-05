@@ -6,7 +6,7 @@ The tutorial questions are arranged in increasing difficulty ⬆️. Each questi
 - If you want to check your answers → click on the **▶️ Show solution 💡** toggle under each question to view the solution. 
 - I highly *highly* suggest you to practice on your own in the DB Fiddle - SQL Data Playground or better yet - add this into your portfolio → You can use the questions_only.md and insert your own solutions in. Drop me a message on Linkedin if you need help on this!
 
-## How many total orders are in the orders table?
+## 1. How many total orders are in the orders table?
 
 We’re simply counting all the rows in the `orders` table since each row represents one order. 
 
@@ -29,7 +29,7 @@ FROM uptown_nasi_lemak.orders;
 
 </details>
 
-### 2. How many unique customers are there in the orders table?
+## 2. How many unique customers are there in the orders table?
 
 We’re finding how many different customers placed an order. That means counting distinct `customer_id`s rather than rows.
 
