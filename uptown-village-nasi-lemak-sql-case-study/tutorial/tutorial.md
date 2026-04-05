@@ -1,16 +1,12 @@
 # SQL Tutorial
 
-The tutorial questions are arranged in increasing difficulty ⬆️. We'll start with basics (**counting rows, selecting unique values and summing totals**) and gradually move into more advanced concepts (**joins, HAVING and CTEs**). 
+The tutorial questions are arranged in increasing difficulty ⬆️. Each question comes with a short explanation of the concept it teaches, so you can practice and build your confidence step by step. 😉
 
-Each question comes with a short explanation of the concept it teaches, so you can practice and build confidence step by step. 😉
+📝 Note from Katie:
+- If you want to check your answers → click on the **▶️ Show solution 💡** toggle under each question to view the solution. 
+- I highly *highly* suggest you to practice on your own in the DB Fiddle - SQL Data Playground or better yet - add this into your portfolio → You can use the questions_only.md and insert your own solutions in. Drop me a message on Linkedin if you need help on this!
 
-If you’d like to:
-- Check your answers → click the **▶️ Show solution 💡** toggle in each question to expand the solution. 
-- Practice on your own or add into your portfolio → use the questions_only.md and insert your own solutions.
-
-## 📙 SQL Basics
-
-### 1. How many total orders are in the orders table?
+## How many total orders are in the orders table?
 
 We’re simply counting all the rows in the `orders` table since each row represents one order. 
 
