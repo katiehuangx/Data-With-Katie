@@ -3,8 +3,9 @@
 The tutorial questions are arranged in increasing difficulty. Each question comes with steps and a short explanation of the concept it teaches, so you can practice and build your confidence step by step. 😉
 
 📝 Note from Katie:
-- To check your answers → click on the **▶️ Show solution** toggle under each question to view the solution. 
-- I highly *highly* suggest you to practice on your own in the DB Fiddle - SQL Data Playground or better yet, add this into your portfolio → You can use the questions_only.md and insert your own solutions in. Drop me a message on Linkedin if you need help on this!
+- To check your answers, click on the **▶️ Show solution** toggle under each question to view the solution. 
+- There are multiple ways to solve the questions, so feel free to present your answers differently! You can add extra columns for percentages, totals, rankings. This isn't an exam or an interview. 🙂
+- I HIGHLY encourage you to practice on your own using the DB Fiddle - SQL Data Playground. Better yet, add this into your portfolio project! You can use the questions_only.md file and insert your own solutions. If you get stuck on this, drop me a message on Linkedin.
 
 ## 1. How many total orders has the restaurant received?
 
@@ -53,11 +54,11 @@ FROM uptown_nasi_lemak.orders;
 
 ## 3. What does our menu pricing look like, starting from the most expensive dishes.
 
-In SQL talk: Use the menu table to list all dishes and their prices, sorted from highest to lowest price.
+In SQL talk: Use the menu table to list all dishes and their prices sorted from highest to lowest price.
 
 - **Step 1:** Identify table where data is stored → `uptown_nasi_lemak.menu`.
-- **Step 2:** Select the columns you want to display → `food_name` and `price`.
-- **Step 3:** Sort the results so that the most expensive dishes appear first → `ORDER BY ... DESC`
+- **Step 2:** Select columns you want to display → `food_name` and `price`.
+- **Step 3:** Sort results so that the most expensive dishes appear first → `ORDER BY column DESC`
 
 <details> 
 <summary> ▶️ Show solution</summary>
@@ -116,9 +117,9 @@ FROM uptown_nasi_lemak.orders
 
 In SQL talk: Count how many times each dish was ordered and rank them from most to least ordered.
 
-- **Step 1:** Join the `uptown_nasi_lemak.orders` and `uptown_nasi_lemak.menu` to match orders with dish names.  
+- **Step 1:** Join `uptown_nasi_lemak.orders` and `uptown_nasi_lemak.menu` to match orders with dish names.  
 - **Step 2:** Use `COUNT(order_id)` grouped by `food_name` to find the number of times each dish was ordered.  
-- **Step 3:** Sort the results in ascending order by the count.  
+- **Step 3:** Sort results in ascending order by the count.  
 
 <details> 
 <summary> ▶️ Show solution</summary>
@@ -126,25 +127,27 @@ In SQL talk: Count how many times each dish was ordered and rank them from most 
 ```sql
 SELECT 
 	menu.food_name,
-  COUNT(orders.order_id) AS no_of_dish_ordered
+  COUNT(orders.order_id) AS order_count
 FROM uptown_nasi_lemak.orders AS orders
 INNER JOIN uptown_nasi_lemak.menu AS menu
 	ON orders.food_id = menu.food_id
 GROUP BY menu.food_name
-ORDER BY no_of_dish_ordered ASC;
+ORDER BY order_count DESC;
 ```
 
-📌 It might feel easier to group by `food_id` and output the IDs, but in real-world reporting, IDs alone aren’t meaningful to business users. Showing the **actual dish names** makes the output presentation-ready, clearer and more useful when sharing results with management.
+📌 It might feel easier to group by `food_id` and return the IDs, but in real-world reporting, IDs alone usually aren’t meaningful to business users. 
+
+Showing the **actual dish names** makes your output more presentation-ready, easier to understand and more useful when sharing insights with the restaurant owners.
 
 ✅ Expected result:
-| **food_name**                                     | **no_of_dish_ordered** |
+| **food_name**                                     | **order_count** |
 |---------------------------------------------------|------------------------|
-| Fried Chicken Wing                                | 47                     |
-| Teh Tarik (Pulled Milk Tea)                       | 48                     |
-| Sambal Sotong Extra (Spicy Squid Sambal)          | 48                     |
-| Nasi Lemak Telur Mata (Egg Nasi Lemak)            | 51                     |
-| Nasi Lemak Sotong (Squid Sambal Nasi Lemak)       | 53                     |
 | Nasi Lemak Ayam Goreng (Fried Chicken Nasi Lemak) | 53                     |
+| Nasi Lemak Sotong (Squid Sambal Nasi Lemak)       | 53                     |
+| Nasi Lemak Telur Mata (Egg Nasi Lemak)            | 51                     |
+| Sambal Sotong Extra (Spicy Squid Sambal)          | 48                     |
+| Teh Tarik (Pulled Milk Tea)                       | 48                     |
+| Fried Chicken Wing                                | 47                     |
 
 </details>
 
@@ -154,7 +157,7 @@ In SQL talk: Group orders by channel and rank channels by total order volume.
 
 - **Step 1:** Join `uptown_nasi_lemak.orders` with `uptown_nasi_lemak.order_channels` using `channel_id`.
 - **Step 2:** Count how many `order_id` values appear for each channel.
-- **Step 3:** Group by `channel_name` and sort results.
+- **Step 3:** Group by `channel_name` and sort results in descending order.
 
 📌 Splitting by channel helps businesses evaluate the return on investment (ROI) of delivery partnerships and optimize staff allocation across delivery vs. dine-in vs. takeaway.
 
@@ -185,10 +188,10 @@ ORDER BY no_of_orders DESC;
 
 In SQL talk: Calculate revenue by dish and identify the top-performing menu item.
 
-📈 **Corporate Insight:** Knowing the top-earning dish helps restaurants decide what to feature on menus, run promotions for, or ensure that supply is never short.
+📈 **Corporate Insight:** Knowing the top-earning dish helps restaurants decide what to feature on menus, run promotions for or ensure that supply is never short.
 
 - **Step 1:** Join `uptown_nasi_lemak.orders` with `uptown_nasi_lemak.menu`.
-- **Step 2:** Group by `food_name`.
+- **Step 2:** Group by `food_name` and calculate the revenue. 
 - **Step 3:** Order revenue in descending order (highest) and pick the top result.
 
 <details> 
@@ -215,10 +218,11 @@ LIMIT 1;
 
 ## 8. Which order channels drive the highest average spend per order? Round results to 2 decimal points.
 
-- **Step 1:** Join `uptown_nasi_lemak.orders` and `uptown_nasi_lemak.order_channels` to link orders with channels.
-- **Step 2:** Mutiply `quantity` and `price` to retrieve order values.
-- **Step 3:** Apply `AVG` on order values and round to 2 decimals for readability.
-- **Step 4:** Order results to easily see which channel has the highest AOV.
+In SQL talk: Calculate the average order value (revenue) for each sales channel.
+
+- **Step 1:** Join `orders` and `order_channels` tables. 
+- **Step 2:** Calculate the revenue, average it out and round to 2 decimals.
+- **Step 3:** Order results from highest to lowest to see which channel has the highest AOV.
 
 <details> 
 <summary> ▶️ Show solution</summary>
@@ -243,9 +247,11 @@ ORDER BY avg_order_value DESC;
 
 </details>
 
-📈 **Corporate Insight:** Average order value (AOV) is a key business metric. It helps identify which sales channels (e.g., dine-in, takeaway, delivery) bring in higher-value customers. Companies can then prioritize or optimize the most profitable channels.
+📈 **Corporate Insight:** Average order value (AOV) is a key business metric. It identifies which sales channels (e.g., dine-in, takeaway, delivery) bring in customers who spend more per order. This helps businesses decide where to focus their efforts and which channels are worth optimizing further. 
 
 ## 9. How is the restaurant’s revenue trending month by month? Calculate the total revenue by month.
+
+In SQL talk: Calculate total revenue by month to track sales trends over time. You can use any datetime function for the month as long it makes sense to business users. 
 
 <details> 
 <summary> ▶️ Show solution</summary>
@@ -270,7 +276,9 @@ ORDER BY mth;
 
 </details>
 
-## 10. Rank dishes based on the total order using RANK(), DENSE_RANK() and ROW_NUMBER().
+## 10. How do our dishes rank in popularity and how do different ranking methods affect the results?
+
+In SQL talk: Rank dishes based on total order count using RANK(), DENSE_RANK(), and ROW_NUMBER().
 
 <details> 
 <summary> ▶️ Show solution</summary>
