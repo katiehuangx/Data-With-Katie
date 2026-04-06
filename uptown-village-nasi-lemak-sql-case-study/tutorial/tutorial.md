@@ -278,7 +278,7 @@ ORDER BY mth;
 
 ## 10. How do our dishes rank in popularity and how do different ranking methods affect the results?
 
-In SQL talk: Rank dishes based on total order count using RANK(), DENSE_RANK(), and ROW_NUMBER().
+In SQL talk: Rank dishes based on total order count using RANK(), DENSE_RANK(), and ROW_NUMBER(). Include a tie-breaker  
 
 <details> 
 <summary> ▶️ Show solution</summary>
@@ -299,11 +299,20 @@ SELECT
   order_count,
   RANK() OVER (ORDER BY order_count DESC) AS rank_seq,
 	DENSE_RANK() OVER (ORDER BY order_count DESC) AS dense_rank_seq,
-  ROW_NUMBER() OVER (ORDER BY order_count DESC) AS row_number_seq
-FROM dishes_popularity;
+  ROW_NUMBER() OVER (ORDER BY order_count DESC, food_name ASC) AS row_number_seq
+FROM dishes_popularity
+ORDER BY food_name;
 ```
 
 ✅ Expected result:
+
+Hi it's Katie here, I want you to stay with me and go through the results together. It's crucial that you understand the difference of the ranking functions. 
+
+Ok, so the 1st column, order_count is the total orders. Use that as a reference column. 
+- Let's go through row 1 and 2. Both dishes have 53 orders. RANK and DENSE_RANK returned them as 1 and 1 because it considers them as equal. ROW_NUMBER returned as 1 and 2 because the function needs to assign a unique, sequential integer. 
+
+
+
 | **food_name**                                     | **order_count** | **rank_seq** | **dense_rank_seq** | **row_number_seq** |
 |---------------------------------------------------|-----------------|--------------|--------------------|--------------------|
 | Nasi Lemak Sotong (Squid Sambal Nasi Lemak)       | 53              | 1            | 1                  | 1                  |
