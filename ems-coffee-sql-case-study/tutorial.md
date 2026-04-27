@@ -1,6 +1,6 @@
 # Ems Coffee
 
-The orders data are in January 2026 only.
+The `orders` data are in January 2026 only.
 
 ## Questions
 
@@ -50,8 +50,13 @@ INNER JOIN menu
 </details>
 
 
-### 2. How much money did the café bring in during the month?
 ### 3. Who are our regulars vs one-time visitors — how many orders did each customer place?
+
+This can be an open-ended question as in you can sort the 
+
+
+
+
 ### 4. What are customers actually drinking — which items are ordered the most?
 ### 5. Are there peak days — which days bring in the most revenue?
 ### 6. Who are our best customers — which customers spend the most overall?
