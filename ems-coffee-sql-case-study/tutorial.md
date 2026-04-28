@@ -29,7 +29,7 @@ INNER JOIN menu
 </details>
 
 
-### 2. Which customers keep coming back to Ems Coffee? Categorise customers with more than 6 orders as ‘regulars’, customers with only 1 order as 'one-time' and everyone else as 'occasional'. Return the customer ID, total orders and visit frequency. 
+### 2. Which customers keep coming back to Ems Coffee? Categorise customers with more than 6 orders as ‘regulars’, customers with only 1 order as 'one-time' and everyone else as 'occasional'. Return the customer ID, total orders and visit frequency sorted by the highest orders.
 
 <details> 
 <summary> ▶️ Show solution</summary>
@@ -45,7 +45,7 @@ SELECT
     END AS visit_frequency
 FROM orders
 GROUP BY customer_id
-ORDER BY total_orders DESC; -- optional
+ORDER BY total_orders DESC;
 ```
 
 ✅ Expected result:
@@ -61,9 +61,48 @@ The first 3 rows:
 
 
 
-### 4. What are customers actually drinking — which items are ordered the most?
+### 3. What are customers actually drinking — which items are ordered the most?
+
+<details> 
+<summary> ▶️ Show solution</summary>
+
+```sql
+
+```
+
+✅ Expected result:
+
+
+</details>
+
 ### 5. Are there peak days — which days bring in the most revenue?
+
+<details> 
+<summary> ▶️ Show solution</summary>
+
+```sql
+
+```
+
+✅ Expected result:
+
+
+</details>
+
 ### 6. Who are our best customers — which customers spend the most overall?
+
+<details> 
+<summary> ▶️ Show solution</summary>
+
+```sql
+
+```
+
+✅ Expected result:
+
+
+</details>
+
 ### 7. On average, how much does a customer spend each time they order?
 ### 8. Does each customer have a “usual” — what’s the most frequently ordered drink per customer?
 ### 9. Are there bulk buyers — how many orders have unusually large quantities?
