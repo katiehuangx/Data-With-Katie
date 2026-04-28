@@ -5,9 +5,9 @@ The `orders` data are in January 2026 only.
 ## Questions
 
 
-## Let's Solve Them Together
+## Solution
 
-### 1. How busy was the café — how many orders did we actually serve and how much money did the café bring in? Return the total orders and total revenue.
+#### 1. How busy was the café — how many orders did we actually serve and how much money did the café bring in? Return the total orders and total revenue.
 
 <details> 
 <summary> ▶️ Show solution</summary>
