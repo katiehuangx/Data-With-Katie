@@ -50,12 +50,15 @@ ORDER BY total_orders DESC;
 
 ✅ Expected result:
 
-The first 3 rows: 
+The first 5 rows: 
 | customer_id 	| total_orders 	| visit_frequency 	|
-|-------------	|--------------	|-----------------	|
-| 8           	| 10           	| regular         	|
-| 14          	| 9            	| regular         	|
-| 25          	| 8            	| regular         	|
+|:-----------:	|:------------:	|:---------------:	|
+| 6           	| 8            	| regular         	|
+| 12          	| 7            	| regular         	|
+| 3           	| 7            	| regular         	|
+| 9           	| 6            	| occasional      	|
+| 8           	| 6            	| occasional      	|
+
 
 </details>
 
@@ -79,39 +82,64 @@ ORDER BY order_count DESC;
 ✅ Expected result:
 | coffee_name  	| order_count 	|
 |--------------	|-------------	|
-| Matcha Latte 	| 35          	|
-| Mocha        	| 33          	|
-| Americano    	| 31          	|
+| Matcha Latte 	| 38         	|
+| Hojicha Latte | 32          	|
+| Espresso    	| 32          	|
 
 </details>
 
-### 4. Are there peak days — which days bring in the most revenue?
+### 4. Are there peak days — which days bring in the most revenue? Return the name of the weekday and total revenue.
 
 <details> 
 <summary> ▶️ Show solution</summary>
 
 ```sql
-
+SELECT
+    TO_CHAR(orders.order_date, 'Day') AS day_of_week,
+    SUM(orders.quantity*menu.price) AS total_revenue
+FROM orders
+INNER JOIN menu
+	ON orders.menu_id = menu.menu_id
+GROUP BY TO_CHAR(orders.order_date, 'Day')
+ORDER BY total_revenue DESC;
 ```
 
 ✅ Expected result:
 
+| day_of_week | total_revenue |
+|-------------|---------------|
+| Thursday    | 711.60        | 
+| Friday      | 630.40        |
+| Wednesday   | 616.20        |
 
 </details>
 
-### 6. Who are our best customers — which customers spend the most overall?
+### 6. Who are our best customers — which customers spend the most overall? Return the customer ID and total spent.
 
 <details> 
 <summary> ▶️ Show solution</summary>
 
 ```sql
-
+SELECT
+    orders.customer_id,
+    SUM(orders.quantity*menu.price) AS total_spent
+FROM orders
+INNER JOIN menu
+	ON orders.menu_id = menu.menu_id
+GROUP BY orders.customer_id
+ORDER BY total_spent DESC;
 ```
 
 ✅ Expected result:
 
+| day_of_week | total_revenue |  
+|-------------|---------------|
+| Thursday    | 711.60        |   
+| Friday      | 630.40        |   
+| Wednesday   | 616.20        |   
 
 </details>
+
 
 ### 7. On average, how much does a customer spend each time they order?
 
