@@ -53,9 +53,13 @@ It's tempting to use `COUNT(orders.order_id)` instead of `COUNT(DISTINCT orders.
 | 400 | 8661.40 |
 
 **💡 Commentary:**
+
 Ems Coffee served 400 orders for RM8,661.40 in revenue which is an average order value (AOV) of roughly RM . On its own, it's a one-line figure and we have yet to know whether that revenue is concentrated in a handful of customers or spread evenly which is what the customer segmentation in Q2 and Q5 will unpack. 
 
-### 2. Customer Loyalty Segments: Which customers keep coming back? Categorise customers with more than 6 orders as 'regulars', exactly 1 order as 'one-time', and everyone else as 'occasional'. Return customer ID, total orders, and visit frequency category sorted by highest orders.
+### 2. Customer Loyalty Segments
+
+Which customers keep coming back? Categorise customers with more than 6 orders as 'regulars', exactly 1 order as 'one-time', and everyone else as 'occasional'. 
+Return customer ID, total orders, and visit frequency category sorted by highest orders.
 
 ```sql
 SELECT
@@ -79,6 +83,8 @@ The first 3 rows:
 | 10 | 15 | regular |
 | 3 | 14 | regular |
 | 6 | 14 | regular |
+
+**💡 Commentary:**
 
 This groups customers into 3 tiers based on their visit frequency. It's great data if we're zooming into individual customers, but it doesn't tell us much from a business perspective. 
 
@@ -119,12 +125,14 @@ ORDER BY pct_of_orders DESC;
 | one-time | 3 | 7.50 | 3 | 0.75 |
 
 **💡 Commentary:**
+
 Regular customers make up 75% (30 out of 40 customers) of Ems Coffee's customers, but they're responsible for 91.25% of all orders. Occasional customers represent a modest 8% and one-time customers barely register at 0.75%. This confirms the earlier point with real numbers: almost the entire business runs on a small core of repeat customers, not a wide base of casual visitors.
 
 
 ### 3. Popularity vs. Profitability 
 
-What are customers actually drinking and which of those drinks are the real money-makers? Return coffee name, total quantity sold, percentage of total volume, total revenue, and percentage of total revenue so it's clear whether the most popular item is also the most profitable one.
+What are customers actually drinking and which of those drinks are the real money-makers? 
+Return coffee name, total quantity sold, percentage of total volume, total revenue, and percentage of total revenue so it's clear whether the most popular item is also the most profitable one.
 
 ```sql
 SELECT
@@ -150,6 +158,7 @@ ORDER BY total_revenue DESC;
 | Hojicha Latte | 67 | 9.80 | 931.30 | 10.75 |
 
 **💡 Commentary:**
+
 Mocha edges out Matcha Latte for the top revenue spot (12.73% vs 12.04%) even though Matcha Latte actually sold slightly more units (75 vs 74) — a small, but clear example of volume and revenue not lining up perfectly. 
 
 Dirty Chai is the more interesting case - it sells noticeably less volume than the top two (65 units vs 74 and 75), but still lands close behind them on revenue (11.93%) because it's priced higher per drink (RM15.90 vs RM14.90 and RM13.90). 
