@@ -41,20 +41,24 @@ INNER JOIN menu
 	ON orders.menu_id = menu.menu_id;
 ```
 
+It's tempting to use `COUNT(orders.order_id)` instead of `COUNT(DISTINCT orders.order_id)` to count the number of orders. However, since the primary key is `(order_id, menu_id)`, a single order could contain more than one item and therefore appear across multiple rows. Using `DISTINCT` ensures each order is counted once regardless of how many items it contains.
+
 ✅ Expected result:
 | total_orders | total_revenue |
 |---|---|
-| 438 | 9915.60 |
+| 400 | 8661.40 |
+
+Ems Coffee served 400 orders for RM8,661.40 in revenue which is an average order value (AOV) of roughly RM . On its own, it's a one-line figure and we have yet to know whether that revenue is concentrated in a handful of customers or spread evenly which is what the customer segmentation in Q2 and Q5 will unpack. 
 
 #### 2. Which customers keep coming back? Categorise customers with more than 6 orders as 'regulars', 1 order as 'one-time', and everyone else as 'occasional'. Return customer ID, total orders, and visit frequency category sorted by highest orders.
 
 ```sql
-SELECT 
+SELECT
 	customer_id,
-    COUNT(order_id) AS total_orders,
+    COUNT(DISTINCT order_id) AS total_orders,
     CASE
-    	WHEN COUNT(order_id) > 6 THEN 'regular'
-        WHEN COUNT(order_id) BETWEEN 2 AND 6  THEN 'occasional'
+    	WHEN COUNT(DISTINCT order_id) > 6 THEN 'regular'
+        WHEN COUNT(DISTINCT order_id) BETWEEN 2 AND 6 THEN 'occasional'
         ELSE 'one-time' 
     END AS visit_frequency
 FROM orders
@@ -64,15 +68,14 @@ ORDER BY total_orders DESC;
 
 ✅ Expected result:
 
-The first 5 rows: 
-| customer_id 	| total_orders 	| visit_frequency 	|
-|:-----------:	|:------------:	|:---------------:	|
-| 6           	| 8            	| regular         	|
-| 12          	| 7            	| regular         	|
-| 3           	| 7            	| regular         	|
-| 9           	| 6            	| occasional      	|
-| 8           	| 6            	| occasional      	|
+The first 3 rows: 
+| customer_id | total_orders | visit_frequency |
+|---|---|---|
+| 10 | 15 | regular |
+| 3 | 14 | regular |
+| 6 | 14 | regular |
 
+This categorizes customers into 3 tiers by visit frequency
 
 </details>
 
