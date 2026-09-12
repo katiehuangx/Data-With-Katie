@@ -157,7 +157,7 @@ ORDER BY total_revenue DESC;
 | Hojicha Latte | 67 | 9.80 | 931.30 | 10.75 |
 
 **💡 Commentary:**
-Mocha edges out Matcha Latte for the top revenue spot (12.73% vs 12.04%) even though Matcha Latte actually sold slightly more units (75 vs 74) — a small, but clear example of volume and revenue not lining up perfectly. 
+Mocha edges out Matcha Latte for the top revenue spot (12.73% vs 12.04%) even though Matcha Latte actually sold slightly more units (75 vs 74) - a small, but clear example of volume and revenue not lining up perfectly. 
 
 Dirty Chai is the more interesting case - it sells noticeably less volume than the top two (65 units vs 74 and 75), but still lands close behind them on revenue (11.93%) because it's priced higher per drink (RM15.90 vs RM14.90 and RM13.90). 
 
