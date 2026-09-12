@@ -50,7 +50,7 @@ It's tempting to use `COUNT(orders.order_id)` instead of `COUNT(DISTINCT orders.
 
 Ems Coffee served 400 orders for RM8,661.40 in revenue which is an average order value (AOV) of roughly RM . On its own, it's a one-line figure and we have yet to know whether that revenue is concentrated in a handful of customers or spread evenly which is what the customer segmentation in Q2 and Q5 will unpack. 
 
-#### 2. Which customers keep coming back? Categorise customers with more than 6 orders as 'regulars', 1 order as 'one-time', and everyone else as 'occasional'. Return customer ID, total orders, and visit frequency category sorted by highest orders.
+#### 2. Which customers keep coming back? Categorise customers with more than 6 orders as 'regulars', exactly 1 order as 'one-time', and everyone else as 'occasional'. Return customer ID, total orders, and visit frequency category sorted by highest orders.
 
 ```sql
 SELECT
@@ -59,7 +59,7 @@ SELECT
     CASE
     	WHEN COUNT(DISTINCT order_id) > 6 THEN 'regular'
         WHEN COUNT(DISTINCT order_id) BETWEEN 2 AND 6 THEN 'occasional'
-        ELSE 'one-time' 
+        ELSE 'one-time'
     END AS visit_frequency
 FROM orders
 GROUP BY customer_id
@@ -75,15 +75,46 @@ The first 3 rows:
 | 3 | 14 | regular |
 | 6 | 14 | regular |
 
-This categorizes customers into 3 tiers by visit frequency
+This groups customers into 3 tiers based on their visit frequency. It's great data if we're zooming into individual customers, but it doesn't tell us much from a business perspective. 
 
-</details>
+Let's retrieve some percentages to give the data some meaning that stakeholders will be interested in. Return visit frequency, count of customers, percentage of customers, total number of orders, and percentage of orders categorized by their visit frequency.
+
+```sql
+WITH customer_category AS (
+    SELECT
+        customer_id,
+        COUNT(DISTINCT order_id) AS total_orders,
+        CASE
+            WHEN COUNT(DISTINCT order_id) > 6 THEN 'regular'
+            WHEN COUNT(DISTINCT order_id) BETWEEN 2 AND 6 THEN 'occasional'
+            ELSE 'one-time' 
+        END AS visit_frequency
+  FROM orders
+  GROUP BY customer_id
+)
+
+SELECT 
+	visit_frequency,
+    COUNT(*) AS num_of_customers,
+    ROUND(100.0 * COUNT(*)/SUM(COUNT(*)) OVER (),2) AS pct_of_customers,
+    SUM(total_orders) AS total_orders,
+    ROUND(100.0 * SUM(total_orders)/SUM(SUM(total_orders)) OVER (),2) AS pct_of_orders
+FROM customer_category  
+GROUP BY visit_frequency
+ORDER BY pct_of_orders DESC;
+```
+
+✅ Expected result:
+| visit_frequency | num_customers | pct_of_customers | total_orders | pct_of_orders |
+|---|---|---|---|---|
+| regular | 30 | 75.00 | 365 | 91.25 |
+| occasional | 7 | 17.50 | 32 | 8.00 |
+| one-time | 3 | 7.50 | 3 | 0.75 |
+
+Regular customers make up 75% (30 out of 40 customers) of Ems Coffee's customers, but they're responsible for 91.25% of all orders. Occasional customers represent a modest 8% and one-time customers barely register at 0.75%. This confirms the earlier point with real numbers: almost the entire business runs on a small core of repeat customers, not a wide base of casual visitors.
 
 
-### 3. What are customers actually drinking — which items are ordered the most? Return the coffee name and order count.
-
-<details> 
-<summary> ▶️ Show solution</summary>
+### 3. What are customers actually drinking — which items sell the most by volume? Return coffee name and total quantity sold.
 
 ```sql
 SELECT
