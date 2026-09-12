@@ -2,7 +2,13 @@
 
 The `orders` data are in January 2026 only.
 
+Definitions used throughout:
+
+- "Orders" = distinct `order_id` count (an order can only ever contain one item; `quantity` captures multiple units of that same item, not multiple different items).
+- "Member" = active membership at the time of a given order (`order_date` between `membership_start_date` and `membership_end_date` or ongoing if `membership_end_date` is NULL).
+
 ## Questions
+
 
 
 ## Solution
@@ -114,7 +120,7 @@ ORDER BY total_revenue DESC;
 
 </details>
 
-### 6. Who are our best customers — which customers spend the most overall? Return the customer ID and total spent.
+### 5. Who are our best customers — which customers spend the most overall? Return the customer ID and total spent.
 
 <details> 
 <summary> ▶️ Show solution</summary>
@@ -141,13 +147,23 @@ ORDER BY total_spent DESC;
 </details>
 
 
-### 7. On average, how much does a customer spend each time they order?
+### 6. On average, how much does a customer spend each time they order? Return the customer ID with the average spent ordered by the highest average spent.
 
 <details> 
 <summary> ▶️ Show solution</summary>
 
 ```sql
-
+SELECT
+    orders.customer_id,
+    ROUND(
+        SUM(orders.quantity*menu.price)
+        /COUNT(orders.order_id)
+        ,2) AS avg_spent
+FROM orders
+INNER JOIN menu
+	ON orders.menu_id = menu.menu_id
+GROUP BY orders.customer_id
+ORDER BY avg_spent DESC;
 ```
 
 ✅ Expected result:
