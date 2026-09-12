@@ -7,16 +7,31 @@ Definitions used throughout:
 - "Orders" = distinct `order_id` count (an order can only ever contain one item; `quantity` captures multiple units of that same item, not multiple different items).
 - "Member" = active membership at the time of a given order (`order_date` between `membership_start_date` and `membership_end_date` or ongoing if `membership_end_date` is NULL).
 
-## Questions
+## Case Study Questions
 
+**Core Questions**
 
+1. How busy was the café — how many orders did we serve and how much revenue did we bring in? Return total orders and total revenue.
+2. Which customers keep coming back? Categorise customers with more than 6 orders as 'regulars', exactly 1 order as 'one-time', and everyone else as 'occasional'. Return customer ID, total orders, and visit frequency category, sorted by highest orders.
+3. What are customers actually drinking — which items sell the most by volume? Return coffee name and total quantity sold.
+4. Are there peak days — which weekdays bring in the most revenue? Return weekday name and total revenue.
+5. Who are our best customers — which customers spend the most overall? Return customer ID and total spent.
+6. Which drinks are our money-makers — highest revenue generated (not just most popular)? Return coffee name and total revenue.
+7. How many of our customers are currently members, lapsed, or never joined? Return counts by status.
+8. Are members actually valuable? Compare total revenue, average spend per order, and order frequency between members and non-members, based on membership status at the time of each order.
 
-## Solution
+**Bonus Questions**
+9. On average, how much does a customer spend each time they order? Return customer ID and average spend per order, sorted by highest average.
+10. Does each customer have a "usual"? Return each customer's most frequently ordered drink(s) — show all ties (DENSE_RANK() so tied drinks appear together).
+11. Are there bulk buyers? Return orders with quantity ≥ 5.
+12. Does membership change behaviour — do customers order more after becoming a member than before?
+13. How long does it typically take a customer to convert into a member (first order → membership start date)?
+14. When a customer's membership lapses, does their ordering drop off afterward?
+15. Do long-tenured members spend more than newer members? (Cohort by membership_start_date, compare spend.)
 
-#### 1. How busy was the café — how many orders did we actually serve and how much money did the café bring in? Return the total orders and total revenue.
+## Case Study Answers
 
-<details> 
-<summary> ▶️ Show solution</summary>
+#### 1. How busy was the café — how many orders did we serve and how much revenue did we bring in? Return total orders and total revenue.
 
 ```sql
 SELECT 
@@ -31,9 +46,6 @@ INNER JOIN menu
 | total_orders 	| total_revenue 	|
 |--------------	|---------------	|
 | 150          	| 3957.10       	|
-
-</details>
-
 
 ### 2. Which customers keep coming back to Ems Coffee? Categorise customers with more than 6 orders as ‘regulars’, customers with only 1 order as 'one-time' and everyone else as 'occasional'. Return the customer ID, total orders and visit frequency sorted by the highest orders.
 
