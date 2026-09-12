@@ -7,11 +7,9 @@ Definitions used throughout:
 - "Orders" = distinct `order_id` count (an order can only ever contain one item; `quantity` captures multiple units of that same item, not multiple different items).
 - "Member" = active membership at the time of a given order (`order_date` between `membership_start_date` and `membership_end_date` or ongoing if `membership_end_date` is NULL).
 
-## 💡 Case Study Questions
+## Core Questions
 
-**Core Questions**
-
-1. Orders & Revenue Overview: How busy was the café — how many orders did we serve and how much revenue did we bring in? Return total orders and total revenue.
+1. [Orders & Revenue Overview](#1-orders--revenue-overview): How busy was the café — how many orders did we serve and how much revenue did we bring in? Return total orders and total revenue.
 2. Which customers keep coming back? Categorise customers with more than 6 orders as 'regulars', exactly 1 order as 'one-time', and everyone else as 'occasional'. Return customer ID, total orders, and visit frequency category, sorted by highest orders.
 3. What are customers actually drinking — which items sell the most by volume? Return coffee name and total quantity sold.
 4. Are there peak days — which weekdays bring in the most revenue? Return weekday name and total revenue.
@@ -20,7 +18,7 @@ Definitions used throughout:
 7. How many of our customers are currently members, lapsed, or never joined? Return counts by status.
 8. Are members actually valuable? Compare total revenue, average spend per order, and order frequency between members and non-members, based on membership status at the time of each order.
 
-**Bonus Questions**
+## Bonus Questions
 
 9. On average, how much does a customer spend each time they order? Return customer ID and average spend per order, sorted by highest average.
 10. Does each customer have a "usual"? Return each customer's most frequently ordered drink(s) — show all ties (DENSE_RANK() so tied drinks appear together).
@@ -30,11 +28,12 @@ Definitions used throughout:
 14. When a customer's membership lapses, does their ordering drop off afterward?
 15. Do long-tenured members spend more than newer members? (Cohort by membership_start_date, compare spend.)
 
-## ✅ Case Study Answers
+## Case Study Answers
 
 ### 1. Orders & Revenue Overview
 
-How busy was the café — how many orders did we serve and how much revenue did we bring in? Return total orders and total revenue.
+How busy was the café — how many orders did we serve and how much revenue did we bring in? 
+Return total orders and total revenue.
 
 ```sql
 SELECT
@@ -45,6 +44,7 @@ INNER JOIN menu
 	ON orders.menu_id = menu.menu_id;
 ```
 
+**⚠️ Common Pitfall:**
 It's tempting to use `COUNT(orders.order_id)` instead of `COUNT(DISTINCT orders.order_id)` to count the number of orders. However, since the primary key is `(order_id, menu_id)`, a single order could contain more than one item and therefore appear across multiple rows. Using `DISTINCT` ensures each order is counted once regardless of how many items it contains.
 
 **✅ Result:**
