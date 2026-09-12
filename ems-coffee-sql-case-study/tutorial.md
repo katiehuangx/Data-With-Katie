@@ -33,8 +33,8 @@ Definitions used throughout:
 #### 1. How busy was the café — how many orders did we serve and how much revenue did we bring in? Return total orders and total revenue.
 
 ```sql
-SELECT 
-	COUNT(orders.order_id) AS total_orders,
+SELECT
+    COUNT(DISTINCT orders.order_id) AS total_orders,
     SUM(orders.quantity * menu.price) AS total_revenue
 FROM orders
 INNER JOIN menu
@@ -42,14 +42,11 @@ INNER JOIN menu
 ```
 
 ✅ Expected result:
-| total_orders 	| total_revenue 	|
-|--------------	|---------------	|
-| 150          	| 3957.10       	|
+| total_orders | total_revenue |
+|---|---|
+| 438 | 9915.60 |
 
-#### 2. Which customers keep coming back to Ems Coffee? Categorise customers with more than 6 orders as ‘regulars’, customers with only 1 order as 'one-time' and everyone else as 'occasional'. Return the customer ID, total orders and visit frequency sorted by the highest orders.
-
-<details> 
-<summary> ▶️ Show solution</summary>
+#### 2. Which customers keep coming back? Categorise customers with more than 6 orders as 'regulars', 1 order as 'one-time', and everyone else as 'occasional'. Return customer ID, total orders, and visit frequency category sorted by highest orders.
 
 ```sql
 SELECT 
