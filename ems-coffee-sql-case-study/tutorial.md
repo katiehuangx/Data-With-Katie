@@ -61,10 +61,10 @@ Return customer ID, total orders, and visit frequency category sorted by highest
 
 ```sql
 SELECT
-	customer_id,
+    customer_id,
     COUNT(DISTINCT order_id) AS total_orders,
     CASE
-    	WHEN COUNT(DISTINCT order_id) > 6 THEN 'regular'
+        WHEN COUNT(DISTINCT order_id) > 6 THEN 'regular'
         WHEN COUNT(DISTINCT order_id) BETWEEN 2 AND 6 THEN 'occasional'
         ELSE 'one-time'
     END AS visit_frequency
