@@ -170,7 +170,9 @@ Are there peak days — which weekdays bring in the most revenue? Return weekday
 ```sql
 SELECT
     TO_CHAR(orders.order_date, 'Day') AS day_of_week,
-    SUM(orders.quantity*menu.price) AS total_revenue
+    COUNT(DISTINCT orders.order_date) AS num_day_of_week,
+    SUM(orders.quantity*menu.price) AS total_revenue,
+    ROUND(SUM(orders.quantity*menu.price)/COUNT(DISTINCT orders.order_date),2) AS avg_revenue_per_day
 FROM orders
 INNER JOIN menu
 	ON orders.menu_id = menu.menu_id
@@ -179,18 +181,25 @@ ORDER BY total_revenue DESC;
 ```
 
 **✅ Result:**
-| day_of_week | total_revenue |
-|-------------|---------------|
-| Thursday    | 711.60        | 
-| Friday      | 630.40        |
-| Wednesday   | 616.20        |
+| day_of_week | num_day_of_week | total_revenue | avg_revenue_per_day |
+|-------------|-----------------|----------------|----------------------|
+| Wednesday   | 31              | 1495.90        | 48.25                |
+| Friday      | 35              | 1492.30        | 42.64                |
+| Thursday    | 27              | 1255.70        | 46.51                |
+| Sunday      | 26              | 1237.10        | 47.58                |
+| Monday      | 28              | 1160.00        | 41.43                |
 
 **💡 Commentary:**
+Wednesday is the genuine peak day at both total revenue (RM1,495.90) and average revenue per day (RM48.25), so there's no ambiguity there. 
 
-### 5. Who are our best customers — which customers spend the most overall? Return the customer ID and total spent.
+Friday is more interesting because it ranks #2 at total revenue (RM1,492.30), however its average per day (RM42.64) is considerably lower than Thursday's (RM46.51) and Sunday's (RM47.58). Friday's total looks strong mainly because there were more Fridays (35 days) than Thursdays (27 days) or Sundays (26 days) in the data, not because each individual Friday brought in more money.
 
-<details> 
-<summary> ▶️ Show solution</summary>
+If Ems Coffee used the total revenue ranking alone to decide staffing or promotions, they'd likely overprioritize Friday over days that are actually stronger performers per occurrence.
+
+
+### 5. Top Spending Customers
+
+Who are our best customers — which customers spend the most overall? Return customer ID and total spent.
 
 ```sql
 SELECT
