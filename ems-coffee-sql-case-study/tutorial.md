@@ -39,7 +39,7 @@ SELECT
     SUM(orders.quantity * menu.price) AS total_revenue
 FROM orders
 INNER JOIN menu
-	ON orders.menu_id = menu.menu_id;
+    ON orders.menu_id = menu.menu_id;
 ```
 
 **⚠️ Common Pitfall:**
@@ -104,7 +104,7 @@ WITH customer_category AS (
 )
 
 SELECT 
-	visit_frequency,
+    visit_frequency,
     COUNT(*) AS num_of_customers,
     ROUND(100.0 * COUNT(*)/SUM(COUNT(*)) OVER (),2) AS pct_of_customers,
     SUM(total_orders) AS total_orders,
@@ -175,7 +175,7 @@ SELECT
     ROUND(SUM(orders.quantity*menu.price)/COUNT(DISTINCT orders.order_date),2) AS avg_revenue_per_day
 FROM orders
 INNER JOIN menu
-	ON orders.menu_id = menu.menu_id
+    ON orders.menu_id = menu.menu_id
 GROUP BY TO_CHAR(orders.order_date, 'Day')
 ORDER BY total_revenue DESC;
 ```
@@ -199,67 +199,110 @@ If Ems Coffee used the total revenue ranking alone to decide staffing or promoti
 
 ### 5. Top Spending Customers
 
-Who are our best customers — which customers spend the most overall? Return customer ID and total spent.
+Who are our best customers — which 10 customers spend the most overall? Return customer ID, total spent, percentage of total revenue, and spend rank limited to the top 10.
 
 ```sql
 SELECT
     orders.customer_id,
-    SUM(orders.quantity*menu.price) AS total_spent
+    SUM(orders.quantity*menu.price) AS total_spent,
+    ROUND(100.0*SUM(orders.quantity*menu.price)/
+    SUM(SUM(orders.quantity*menu.price)) OVER (),2) AS pct_of_revenue,
+    RANK() OVER (ORDER BY SUM(orders.quantity*menu.price) DESC) AS spend_rank
 FROM orders
 INNER JOIN menu
-	ON orders.menu_id = menu.menu_id
+    ON orders.menu_id = menu.menu_id
 GROUP BY orders.customer_id
-ORDER BY total_spent DESC;
+ORDER BY total_spent DESC
+LIMIT 10;
 ```
 
-✅ Expected result:
+**⚠️ Common Pitfall:**
+It's tempting to think `RANK() OVER (ORDER BY SUM(orders.quantity*menu.price) DESC)` already sorts the output since it has `ORDER BY` built into it. It doesn't. The `ORDER BY` inside `RANK() OVER (...)` only controls how the rank numbers are assigned to each row. It doesn't control how the order rows are physically returned in. 
 
-| day_of_week | total_revenue |  
-|-------------|---------------|
-| Thursday    | 711.60        |   
-| Friday      | 630.40        |   
-| Wednesday   | 616.20        |   
+SQL only guarantees output order when you add an explicit `ORDER BY` at the end of the query. Without it, the rank values would still be correct, but row 1 (`spend_rank` = 1) might not print at the top of your result.
 
-</details>
+**✅ Result:**
+| customer_id | total_spent | pct_of_revenue | spend_rank |
+|------------:|------------:|----------------:|-----------:|
+| 23          | 384.30      | 4.44             | 1          |
+| 11          | 360.10      | 4.16             | 2          |
+| 20          | 357.90      | 4.13             | 3          |
+| 10          | 348.30      | 4.02             | 4          |
+| 16          | 331.70      | 3.83             | 5          |
 
+**💡 Commentary:**
+The top 5 customers alone account for roughly 20.6% of total revenue. No single customer stands out disproportionately — the gap between rank 1 (4.44%) and rank 5 (3.83%) is small so spending is fairly evenly spread even among the top tier, rather than driven by one or two "whale" customers.
+ 
+### 6. Membership Status Breakdown
 
-### 6. On average, how much does a customer spend each time they order? Return the customer ID with the average spent ordered by the highest average spent.
-
-<details> 
-<summary> ▶️ Show solution</summary>
+How many of our customers are currently members, lapsed, or never joined? Return membership status (active member, lapsed member, never joined) and customer count for each.
 
 ```sql
-SELECT
-    orders.customer_id,
-    ROUND(
-        SUM(orders.quantity*menu.price)
-        /COUNT(orders.order_id)
-        ,2) AS avg_spent
-FROM orders
+WITH customer_status AS (
+    SELECT
+        customer_id,
+        CASE
+            WHEN membership_start_date IS NOT NULL AND membership_end_date IS NULL THEN 'active member'
+            WHEN membership_start_date IS NULL AND membership_end_date IS NULL THEN 'never joined'
+            ELSE 'lapsed member'
+        END AS member_status
+    FROM customers
+)
+  
+SELECT 
+    member_status,
+    COUNT (DISTINCT customer_id) AS member_count
+FROM customer_status
+GROUP BY member_status;
+```
+
+**✅ Result:**
+| member_status  | member_count |
+|----------------|-------------:|
+| active member  | 14           |
+| lapsed member  | 10           |
+| never joined   | 16           |
+
+**💡 Commentary:**
+Out of 40 customers, 16 (40%) have never signed up for membership at all - the single largest group. Of those who joined, more customers are still active (14) than have lapsed (10), so membership retention looks healthy once someone signs up. The bigger opportunity is converting the 40% who've never joined in the first place.
+
+### Member vs. Non-Member Value
+
+Are members actually valuable? Compare members vs. non-members based on membership status at the time of each order. Return status (member/non-member), number of customers, total orders, average orders per customer, total revenue, and average spend per order.
+
+```sql
+WITH customer_status AS (
+    SELECT
+        customer_id,
+  		order_date,
+        CASE
+            WHEN membership_start_date IS NOT NULL AND membership_end_date IS NULL THEN 'member'
+            WHEN membership_start_date IS NULL AND membership_end_date IS NULL THEN 'non-member'
+            ELSE 'member'
+        END AS status_at_order
+    FROM customers
+  	INNER JOIN orders
+  		ON customers.customer_id = orders.customer_id
+)
+  
+SELECT 
+    member_status,
+	COUNT (DISTINCT customer_status.customer_id) AS member_count,
+    COUNT(DISTINCT orders.order_id) AS order_count,
+    SUM(orders.quantity*menu.price) AS total_revenue,
+    ROUND(SUM(orders.quantity*menu.price)/COUNT (DISTINCT customer_status.customer_id),2) AS avg_revenue_per_customer,
+    ROUND(SUM(orders.quantity*menu.price)/COUNT(DISTINCT orders.order_id),2) AS avg_revenue_per_order
+FROM customer_status
+INNER JOIN orders
+	ON customer_status.customer_id = orders.customer_id
 INNER JOIN menu
 	ON orders.menu_id = menu.menu_id
-GROUP BY orders.customer_id
-ORDER BY avg_spent DESC;
+GROUP BY member_status;
 ```
 
-✅ Expected result:
+**✅ Result:**
 
-
-</details>
-
-### 8. Does each customer have a “usual” — what’s the most frequently ordered drink per customer?
-
-<details> 
-<summary> ▶️ Show solution</summary>
-
-```sql
-
-```
-
-✅ Expected result:
-
-
-</details>
+**💡 Commentary:**
 
 ### 9. Are there bulk buyers — how many orders have unusually large quantities?
 
@@ -271,10 +314,9 @@ ORDER BY avg_spent DESC;
 
 ```
 
-✅ Expected result:
+**✅ Result:**
 
-
-</details>
+**💡 Commentary:**
 
 ### 10. Which drinks are our money-makers — not just popular, but generating the most revenue?
 
@@ -285,10 +327,9 @@ ORDER BY avg_spent DESC;
 
 ```
 
-✅ Expected result:
+**✅ Result:**
 
-
-</details>
+**💡 Commentary:**
 
 ### 11. How many of our customers are currently members, and how many have dropped off or never joined?
 
@@ -299,10 +340,9 @@ ORDER BY avg_spent DESC;
 
 ```
 
-✅ Expected result:
+**✅ Result:**
 
-
-</details>
+**💡 Commentary:**
 
 ### 12. Are members actually valuable — how much revenue comes from members vs non-members?
 
@@ -313,10 +353,9 @@ ORDER BY avg_spent DESC;
 
 ```
 
-✅ Expected result:
+**✅ Result:**
 
-
-</details>
+**💡 Commentary:**
 
 ### 13. Do members spend more when they order, or is it about the same?
 
@@ -327,10 +366,9 @@ ORDER BY avg_spent DESC;
 
 ```
 
-✅ Expected result:
+**✅ Result:**
 
-
-</details>
+**💡 Commentary:**
 
 ### 14. Do members come back more often than non-members?
 
