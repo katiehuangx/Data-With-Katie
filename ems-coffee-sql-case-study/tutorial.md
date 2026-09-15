@@ -2,6 +2,8 @@
 
 ## Overview
 
+All prices and revenue figures in this dataset are in Malaysian Ringgit (RM).
+
 Definitions used throughout:
 
 - "Orders" = distinct `order_id` count (an order can only ever contain one item; `quantity` captures multiple units of that same item, not multiple different items).
@@ -266,43 +268,59 @@ GROUP BY member_status;
 **💡 Commentary:**
 Out of 40 customers, 16 (40%) have never signed up for membership at all - the single largest group. Of those who joined, more customers are still active (14) than have lapsed (10), so membership retention looks healthy once someone signs up. The bigger opportunity is converting the 40% who've never joined in the first place.
 
-### Member vs. Non-Member Value
+### 7. Member vs. Non-Member Value
 
 Are members actually valuable? Compare members vs. non-members based on membership status at the time of each order. Return status (member/non-member), number of customers, total orders, average orders per customer, total revenue, and average spend per order.
 
+Note on the membership date columns:`
+Both null = never joined
+membership_start_date filled in, membership_end_date null = active member
+membership_start_date and membership_end_date filled in = lapsed member
+
 ```sql
+
 WITH customer_status AS (
     SELECT
-        customer_id,
-  		order_date,
+        customers.customer_id,
+  		orders.order_id,
+  		orders.order_date,
+		orders.quantity,
+  		menu.price,
         CASE
-            WHEN membership_start_date IS NOT NULL AND membership_end_date IS NULL THEN 'member'
-            WHEN membership_start_date IS NULL AND membership_end_date IS NULL THEN 'non-member'
-            ELSE 'member'
+        	WHEN order_date BETWEEN membership_start_date AND membership_end_date THEN 'member'
+            WHEN membership_start_date IS NOT NULL AND membership_end_date IS NULL 
+                AND order_date >= membership_start_date THEN 'member'
+            ELSE 'non-member'
         END AS status_at_order
     FROM customers
   	INNER JOIN orders
   		ON customers.customer_id = orders.customer_id
+	INNER JOIN menu
+		ON orders.menu_id = menu.menu_id
 )
   
 SELECT 
-    member_status,
-	COUNT (DISTINCT customer_status.customer_id) AS member_count,
-    COUNT(DISTINCT orders.order_id) AS order_count,
-    SUM(orders.quantity*menu.price) AS total_revenue,
-    ROUND(SUM(orders.quantity*menu.price)/COUNT (DISTINCT customer_status.customer_id),2) AS avg_revenue_per_customer,
-    ROUND(SUM(orders.quantity*menu.price)/COUNT(DISTINCT orders.order_id),2) AS avg_revenue_per_order
+    status_at_order,
+	COUNT (DISTINCT customer_id) AS num_of_customers,
+    COUNT(DISTINCT order_id) AS total_orders,
+    ROUND(COUNT(DISTINCT order_id)::NUMERIC/COUNT(DISTINCT customer_id),2) AS avg_order_per_customer,
+    SUM(quantity*price) AS total_revenue,
+    ROUND(SUM(quantity*price)/COUNT(DISTINCT order_id),2) AS avg_revenue_per_order
 FROM customer_status
-INNER JOIN orders
-	ON customer_status.customer_id = orders.customer_id
-INNER JOIN menu
-	ON orders.menu_id = menu.menu_id
-GROUP BY member_status;
+GROUP BY status_at_order;
 ```
 
 **✅ Result:**
+| status_at_order | num_of_customers | total_orders | avg_order_per_customer | total_revenue | avg_revenue_per_order |
+|------------------|------------------:|-------------:|------------------------:|---------------:|------------------------:|
+| member           | 24                | 189          | 7.88                    | 4761.50         | 25.19                   |
+| non-member       | 40                | 211          | 5.28                    | 3899.90         | 18.48                   |
 
 **💡 Commentary:**
+
+Members generate more total revenue than non-members (RM4,761.50 vs. RM3,899.90) despite there being far fewer of them — 24 members compared to 40 non-members. So the per-person gap is actually bigger than the totals alone suggest.
+
+Breaking it down, that gap comes from two separate effects stacking on top of each other, not just one: members order about 49% more often per person (RM7.88 vs. RM5.28 orders on average), and they spend about 36% more per order when they do (RM25.19 vs. RM18.48). In accounting terms, this is essentially a volume-and-rate decomposition — the same logic as splitting a revenue variance into "how many transactions" versus "value per transaction" rather than leaving it as one unexplained number. Here, membership doesn't just win on one lever, it wins on both: members visit more often and spend more each time, which is a stronger and more durable form of value than either effect alone would be.
 
 ### 9. Are there bulk buyers — how many orders have unusually large quantities?
 
