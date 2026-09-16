@@ -2,6 +2,21 @@
 
 ## Overview
 
+Ems Coffee is a small café running a customer membership program. This case study has 3 tables: 
+- `orders` (every transaction - who bought what, when, and how many)
+- `menu` (item names and prices)
+- `customers` (who's joined the membership program and when their membership started and ended, if at all). 
+
+The questions are grouped into 3 tiers each building on the last:
+
+- Core (Q1-7) the fundamentals: aggregate functions (COUNT, SUM, AVG), joins across tables, CASE statements for segmentation, and an introduction to window functions.
+- Bonus (Q8-12) a step-up: CTEs, DENSE_RANK() with PARTITION BY, and reasoning about dates relative to a moving window — was a given order placed before, during, or after a customer's membership.
+- Advanced (Q13-15) techniques used in real analytics work: NTILE() for percentile-based customer segmentation (RFM), cohort-based retention analysis, and LAG() for period-over-period trend comparisons.
+
+If you'd like to practice rather than just read, try writing your own query for each question before checking the SQL and commentary underneath it, that's how this case study was actually built. 
+
+***
+
 All prices and revenue figures in this dataset are in Malaysian Ringgit (RM).
 
 Definitions used throughout:
@@ -13,11 +28,11 @@ Definitions used throughout:
 
 1. [Orders & Revenue Overview](#1-orders--revenue-overview): How busy was the café — how many orders did we serve and how much revenue did we bring in? Return total orders and total revenue.
 2. [Customer Loyalty Segments](#2-customer-loyalty-segments): Which customers keep coming back? Categorise customers with more than 6 orders as 'regulars', exactly 1 order as 'one-time', and everyone else as 'occasional'. Return customer ID, total orders, and visit frequency category, sorted by highest orders.
-3. [Popularity vs. Profitability](#3-popularity-vs-profitability): What are customers actually drinking, and which of those drinks are the real money-makers? Return coffee name, total quantity sold, percentage of total volume, total revenue, and percentage of total revenue — so it's clear whether the most popular item is also the most profitable one.
-4. [Peak Revenue Days](#4-peak-revenue-days): Are there peak days — which weekdays bring in the most revenue? Return weekday name and total revenue.
-5. [Top Spending Customers](#5-top-spending-customers): Who are our best customers — which customers spend the most overall? Return customer ID and total spent.
-6. [Membership Status Breakdown](#6-membership-status-breakdown): How many of our customers are currently members, lapsed, or never joined? Return counts by status.
-7. [Member vs. Non-Member Value](#7-member-vs-non-member-value): Are members actually valuable? Compare total revenue, average spend per order, and order frequency between members and non-members, based on membership status at the time of each order.
+3. [Popularity vs. Profitability](#3-popularity-vs-profitability): What are customers actually drinking, and which of those drinks are the real money-makers? Return coffee name, total quantity sold, percentage of total volume, total revenue, and percentage of total revenue so it's clear whether the most popular item is also the most profitable one.
+4. [Peak Revenue Days](#4-peak-revenue-days): Are there peak days - which weekdays bring in the most revenue? Return weekday name and total revenue.
+5. [Top Spending Customers](#5-top-spending-customers): Who are our best customers - which 10 customers spend the most overall? Return customer ID, total spent, percentage of total revenue, and spend rank, limited to the top 10.
+6. [Membership Status Breakdown](#6-membership-status-breakdown): How many of our customers are currently members, lapsed, or never joined? Return membership status (active member, lapsed member, never joined) and customer count for each.
+7. [Member vs. Non-Member Value](#7-member-vs-non-member-value): Are members actually valuable? For every order, work out whether that customer was a member or a non-member at the time of that specific order — not their current status. The same customer can land in both groups, depending on when each order happened relative to their membership dates. Return: status (member/non-member), number of customers, total orders, average orders per customer, total revenue, and average spend per order.
 
 ## Bonus Questions
 
@@ -270,12 +285,19 @@ Out of 40 customers, 16 (40%) have never signed up for membership at all - the s
 
 ### 7. Member vs. Non-Member Value
 
-Are members actually valuable? Compare members vs. non-members based on membership status at the time of each order. Return status (member/non-member), number of customers, total orders, average orders per customer, total revenue, and average spend per order.
+Are members *actually* valuable? 
 
-Note on the membership date columns:`
-Both null = never joined
-membership_start_date filled in, membership_end_date null = active member
-membership_start_date and membership_end_date filled in = lapsed member
+For every order, work out whether the customer was a member or a non-member *at the time that specific order* was placed — not their current status. The same customer can land in both groups depending on when each other happened relative to their membership dates. 
+
+Return status (member/non-member), number of customers, total orders, average orders per customer, total revenue, and average spend per order.
+
+How to read `membership_start_date` and `membership_end_date` together:
+
+| membership_start_date | membership_end_date | status        |
+|------------------------|----------------------|----------------|
+| NULL                    | NULL                 | never joined   |
+| has a date              | NULL                 | active member  |
+| has a date              | has a date           | lapsed member  |
 
 ```sql
 
@@ -317,35 +339,86 @@ GROUP BY status_at_order;
 | non-member       | 40                | 211          | 5.28                    | 3899.90         | 18.48                   |
 
 **💡 Commentary:**
+Members generate more total revenue than non-members (RM4,761.50 vs. RM3,899.90) despite there being far fewer of them - 24 members compared to 40 non-members. So the per-person gap is actually bigger than the totals alone suggest.
 
-Members generate more total revenue than non-members (RM4,761.50 vs. RM3,899.90) despite there being far fewer of them — 24 members compared to 40 non-members. So the per-person gap is actually bigger than the totals alone suggest.
+Breaking it down, that gap comes from two separate effects stacking on top of each other, not just one: members order about 49% more often per person (RM7.88 vs. RM5.28 orders on average) and they spend about 36% more per order when they do (RM25.19 vs. RM18.48). 
 
-Breaking it down, that gap comes from two separate effects stacking on top of each other, not just one: members order about 49% more often per person (RM7.88 vs. RM5.28 orders on average), and they spend about 36% more per order when they do (RM25.19 vs. RM18.48). In accounting terms, this is essentially a volume-and-rate decomposition — the same logic as splitting a revenue variance into "how many transactions" versus "value per transaction" rather than leaving it as one unexplained number. Here, membership doesn't just win on one lever, it wins on both: members visit more often and spend more each time, which is a stronger and more durable form of value than either effect alone would be.
+In accounting terms, this is essentially a volume-and-rate decomposition which is the same logic as splitting a revenue variance into "how many transactions" vs. "value per transaction" rather than leaving it as one unexplained number. 
 
-### 9. Are there bulk buyers — how many orders have unusually large quantities?
+Members: 24 customers × 7.88 orders/customer × RM25.19/order ≈ RM4,761 ✔️
+Non-members: 40 customers × 5.28 orders/customer × RM18.48/order ≈ RM3,899 ✔️
 
+To round this up, members visit more often and spend more each time which is a stronger and more durable form of value than either effect alone would be.
 
-<details> 
-<summary> ▶️ Show solution</summary>
+### 8. Customer's Usual Order
+
+Does each customer have a "usual"? Return customer ID, drink name, number of times ordered, and rank showing all ties (via DENSE_RANK()), not just a single top pick.
 
 ```sql
-
+WITH ranked_data AS (
+    SELECT
+        customer_id,
+        coffee_name,
+        COUNT(order_id) AS coffee_count,
+        DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY COUNT(order_id) DESC) AS coffee_rank
+    FROM orders
+    INNER JOIN menu
+        ON orders.menu_id = menu.menu_id
+    GROUP BY
+        customer_id,
+        coffee_name
+)
+SELECT
+    customer_id,
+    coffee_name,
+    coffee_count,
+    coffee_rank
+FROM ranked_data
+WHERE coffee_rank = 1
+ORDER BY customer_id;
 ```
 
 **✅ Result:**
+| customer_id | coffee_name  | coffee_count | coffee_rank |
+|-------------|--------------|-------------:|------------:|
+| 1           | Americano    | 3            | 1           |
+| 1           | Caffe Latte  | 3            | 1           |
+| 2           | Matcha Latte | 2            | 1           |
+| 2           | Cappuccino   | 2            | 1           |
+| 2           | Affogato     | 2            | 1           |
 
 **💡 Commentary:**
+Not every customer has a single clear "usual". Customer 1 is tied between two drinks (Americano and Caffe Latte - 3 orders each) and customer 2 is tied across three (Matcha Latte, Cappuccino, Affogato - 2 orders each). 
 
-### 10. Which drinks are our money-makers — not just popular, but generating the most revenue?
+This is exactly why the query uses `DENSE_RANK()` to show all ties rather than arbitrarily picking one drink per customer.
 
-<details> 
-<summary> ▶️ Show solution</summary>
+### 9. Time to Convert
+
+How long does it typically take a customer to convert into a member? Return customer ID, first order date, membership start date, days to convert, and the average days-to-convert across all members.
 
 ```sql
-
+SELECT
+    customers.customer_id,
+    MIN(order_date) AS first_order_date,
+    membership_start_date,
+    membership_start_date-MIN(order_date) AS days_to_convert,
+	ROUND(AVG(membership_start_date-MIN(order_date)) OVER (),2) AS avg_days_to_convert
+FROM orders
+INNER JOIN customers
+	ON orders.customer_id = customers.customer_id
+WHERE membership_start_date IS NOT NULL
+GROUP BY customers.customer_id, membership_start_date
+ORDER BY customers.customer_id;
 ```
 
 **✅ Result:**
+| customer_id | first_order_date | membership_start_date | days_to_convert | avg_days_to_convert |
+|-------------|-------------------|-------------------------|------------------:|-----------------------:|
+| 1           | 2025-01-01        | 2025-01-05              | 4                | 35.92                  |
+| 3           | 2025-01-01        | 2025-02-10              | 40               | 35.92                  |
+| 4           | 2025-01-15        | 2025-03-01              | 45               | 35.92                  |
+| 5           | 2025-01-01        | 2025-01-20              | 19               | 35.92                  |
+| 7           | 2025-01-01        | 2025-02-15              | 45               | 35.92                  |
 
 **💡 Commentary:**
 
