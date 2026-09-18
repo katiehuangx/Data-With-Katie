@@ -254,6 +254,14 @@ The top 5 customers alone account for roughly 20.6% of total revenue. No single 
 
 How many of our customers are currently members, lapsed, or never joined? Return membership status (active member, lapsed member, never joined) and customer count for each.
 
+How to read `membership_start_date` and `membership_end_date` together:
+
+| membership_start_date | membership_end_date | status        |
+|------------------------|----------------------|----------------|
+| NULL                    | NULL                 | never joined   |
+| has a date              | NULL                 | active member  |
+| has a date              | has a date           | lapsed member  |
+
 ```sql
 WITH customer_status AS (
     SELECT
@@ -350,6 +358,10 @@ Non-members: 40 customers × 5.28 orders/customer × RM18.48/order ≈ RM3,899 �
 
 To round this up, members visit more often and spend more each time which is a stronger and more durable form of value than either effect alone would be.
 
+***
+
+## Bonus Questions
+
 ### 8. Customer's Usual Order
 
 Does each customer have a "usual"? Return customer ID, drink name, number of times ordered, and rank showing all ties (via DENSE_RANK()), not just a single top pick.
@@ -421,24 +433,13 @@ ORDER BY customers.customer_id;
 | 7           | 2025-01-01        | 2025-02-15              | 45               | 35.92                  |
 
 **💡 Commentary:**
+Conversion time is quite variable person-to-person in this sample from as fast as 4 days (customer 1) to as long as 45 days (customers 4 and 7) averaging around 36 days overall. 
 
-### 11. How many of our customers are currently members, and how many have dropped off or never joined?
+Worth investigating further whether the average conversion days of 36 days represent the entire data or was pulled up by a select few customers' days to convert. 
 
-<details> 
-<summary> ▶️ Show solution</summary>
+### 10. Post-Lapse Drop-Off
 
-```sql
-
-```
-
-**✅ Result:**
-
-**💡 Commentary:**
-
-### 12. Are members actually valuable — how much revenue comes from members vs non-members?
-
-<details> 
-<summary> ▶️ Show solution</summary>
+When a customer's membership lapses, does their ordering drop off afterward? Return customer ID, orders per month while an active member, and orders per month after lapsing.
 
 ```sql
 
@@ -448,10 +449,25 @@ ORDER BY customers.customer_id;
 
 **💡 Commentary:**
 
-### 13. Do members spend more when they order, or is it about the same?
+### 11. Tenure vs. Spend
 
-<details> 
-<summary> ▶️ Show solution</summary>
+Do long-tenured members spend more than newer members? Return tenure cohort (grouped by membership start month), number of customers, and average total spend per customer.
+
+```sql
+
+```
+
+**✅ Result:**
+
+**💡 Commentary:**
+
+***
+
+## Advanced Questions
+
+### 12. RFM Customer Segmentation
+
+Which customers are most valuable when you weigh how recently, how often, and how much they spend — not spend alone? For each customer, calculate recency (days since their last order), frequency (total orders), and monetary value (total spend), then score each dimension into quartiles using NTILE(4). Return customer ID, recency, frequency, monetary value, and the three quartile scores.
 
 ```sql
 
