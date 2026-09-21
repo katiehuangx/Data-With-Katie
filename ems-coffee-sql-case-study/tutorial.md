@@ -182,7 +182,7 @@ So, among these top five, the ranking by "most sold" and the ranking by "most pr
 
 ### 4. Peak Revenue Days
 
-Are there peak days — which weekdays bring in the most revenue? Return weekday name and total revenue.
+Are there peak days — which days of the week bring in the most revenue? Return day of the week, number of times that day occurred, total revenue, and average revenue per occurrence limited to the top 5 days by total revenue.
 
 ```sql
 SELECT
@@ -194,25 +194,25 @@ FROM orders
 INNER JOIN menu
     ON orders.menu_id = menu.menu_id
 GROUP BY TO_CHAR(orders.order_date, 'Day')
-ORDER BY total_revenue DESC;
+ORDER BY total_revenue DESC
+LIMIT 5;
 ```
 
 **✅ Result:**
 | day_of_week | num_day_of_week | total_revenue | avg_revenue_per_day |
-|-------------|-----------------|----------------|----------------------|
-| Wednesday   | 31              | 1495.90        | 48.25                |
-| Friday      | 35              | 1492.30        | 42.64                |
-| Thursday    | 27              | 1255.70        | 46.51                |
-| Sunday      | 26              | 1237.10        | 47.58                |
-| Monday      | 28              | 1160.00        | 41.43                |
+|-------------|------------------|----------------|----------------------|
+| Monday      | 32               | 1546.70        | 48.33                |
+| Wednesday   | 37               | 1485.20        | 40.14                |
+| Friday      | 38               | 1416.10        | 37.27                |
+| Sunday      | 33               | 1131.70        | 34.29                |
+| Thursday    | 36               | 1094.30        | 30.40                |
 
 **💡 Commentary:**
-Wednesday is the genuine peak day at both total revenue (RM1,495.90) and average revenue per day (RM48.25), so there's no ambiguity there. 
+Monday stands out as the strongest day once you see how often each day occurs in the data. It only shows up 32 times over the 15-month period, fewer than Wednesday (37 days) or Friday (38 days), and yet it earns the highest average revenue per occurrence at RM 48.33, well ahead of Wednesday's RM 40.14 and Friday's RM 37.27. So, it's not topping the list because "Monday just happens more often", it's genuinely a stronger day.
 
-Friday is more interesting because it ranks #2 at total revenue (RM1,492.30), however its average per day (RM42.64) is considerably lower than Thursday's (RM46.51) and Sunday's (RM47.58). Friday's total looks strong mainly because there were more Fridays (35 days) than Thursdays (27 days) or Sundays (26 days) in the data, not because each individual Friday brought in more money.
+Interestingly, Friday's the opposite story. It has the highest number of occurences, however a considerably lower average revenue per day at RM37.27, meaning its total is coming from frequency rather than average on its own.
 
-If Ems Coffee used the total revenue ranking alone to decide staffing or promotions, they'd likely overprioritize Friday over days that are actually stronger performers per occurrence.
-
+Worth investigating into why Monday performs so well. It could be something specific like a nearby office's schedule or a regular promo since that's the kind of thing that can be replicated on other days too, instead of assuming Friday is the "best" day just because its total looks big.
 
 ### 5. Top Spending Customers
 
@@ -240,15 +240,20 @@ SQL only guarantees output order when you add an explicit `ORDER BY` at the end 
 
 **✅ Result:**
 | customer_id | total_spent | pct_of_revenue | spend_rank |
-|------------:|------------:|----------------:|-----------:|
-| 23          | 384.30      | 4.44             | 1          |
-| 11          | 360.10      | 4.16             | 2          |
-| 20          | 357.90      | 4.13             | 3          |
-| 10          | 348.30      | 4.02             | 4          |
-| 16          | 331.70      | 3.83             | 5          |
+|-------------|-------------|-----------------|------------|
+| 23          | 384.30      | 4.44            | 1          |
+| 11          | 360.10      | 4.16            | 2          |
+| 20          | 357.90      | 4.13            | 3          |
+| 10          | 348.30      | 4.02            | 4          |
+| 16          | 331.70      | 3.83            | 5          |
+| 29          | 327.40      | 3.78            | 6          |
+| 8           | 315.30      | 3.64            | 7          |
+| 15          | 310.30      | 3.58            | 8          |
+| 1           | 308.40      | 3.56            | 9          |
+| 26          | 306.40      | 3.54            | 10         |
 
 **💡 Commentary:**
-The top 5 customers alone account for roughly 20.6% of total revenue. No single customer stands out disproportionately — the gap between rank 1 (4.44%) and rank 5 (3.83%) is small so spending is fairly evenly spread even among the top tier, rather than driven by one or two "whale" customers.
+The top 10 customers together account for roughly 38.7% of total revenue. No single customer stands out disproportionately - the gap between rank 1 (4.44%) and rank 10 (3.54%) is fairly narrow, so spending is fairly evenly spread even within this top tier rather than driven by one or two "whale" customers.
  
 ### 6. Membership Status Breakdown
 
@@ -295,7 +300,7 @@ Out of 40 customers, 16 (40%) have never signed up for membership at all - the s
 
 Are members *actually* valuable? 
 
-For every order, work out whether the customer was a member or a non-member *at the time that specific order* was placed — not their current status. The same customer can land in both groups depending on when each other happened relative to their membership dates. 
+For every order, work out whether the customer was a member or a non-member *at the time that specific order was placed* and not their current status. The same customer can land in both groups depending on when each order happened relative to their membership dates. 
 
 Return status (member/non-member), number of customers, total orders, average orders per customer, total revenue, and average spend per order.
 
@@ -308,7 +313,6 @@ How to read `membership_start_date` and `membership_end_date` together:
 | has a date              | has a date           | lapsed member  |
 
 ```sql
-
 WITH customer_status AS (
     SELECT
         customers.customer_id,
@@ -334,8 +338,8 @@ SELECT
 	COUNT (DISTINCT customer_id) AS num_of_customers,
     COUNT(DISTINCT order_id) AS total_orders,
     ROUND(COUNT(DISTINCT order_id)::NUMERIC/COUNT(DISTINCT customer_id),2) AS avg_order_per_customer,
-    SUM(quantity*price) AS total_revenue,
-    ROUND(SUM(quantity*price)/COUNT(DISTINCT order_id),2) AS avg_revenue_per_order
+    SUM(quantity * price) AS total_revenue,
+    ROUND(SUM(quantity * price)/COUNT(DISTINCT order_id),2) AS avg_revenue_per_order
 FROM customer_status
 GROUP BY status_at_order;
 ```
@@ -343,20 +347,22 @@ GROUP BY status_at_order;
 **✅ Result:**
 | status_at_order | num_of_customers | total_orders | avg_order_per_customer | total_revenue | avg_revenue_per_order |
 |------------------|------------------:|-------------:|------------------------:|---------------:|------------------------:|
-| member           | 24                | 189          | 7.88                    | 4761.50         | 25.19                   |
-| non-member       | 40                | 211          | 5.28                    | 3899.90         | 18.48                   |
+| member           | 24                | 205          | 8.54                   | 5227.60        | 25.50                   |
+| non-member       | 40                | 195          | 4.88                    | 3433.80       | 17.61                   |
 
 **💡 Commentary:**
-Members generate more total revenue than non-members (RM4,761.50 vs. RM3,899.90) despite there being far fewer of them - 24 members compared to 40 non-members. So the per-person gap is actually bigger than the totals alone suggest.
+Members generate more total revenue than non-members (RM5,227.60 vs. RM3,433.80) despite being far fewer of them — 24 members compared to 40 non-members. So the per-person gap is actually bigger than the totals alone suggest.
 
-Breaking it down, that gap comes from two separate effects stacking on top of each other, not just one: members order about 49% more often per person (RM7.88 vs. RM5.28 orders on average) and they spend about 36% more per order when they do (RM25.19 vs. RM18.48). 
+Breaking it down, that gap comes from 2 separate effects:
+- members order about 75% more often per person (8.54 vs. 4.88 orders on average), and
+- they spend about 45% more per order when they do (RM25.50 vs. RM17.61).
 
-In accounting terms, this is essentially a volume-and-rate decomposition which is the same logic as splitting a revenue variance into "how many transactions" vs. "value per transaction" rather than leaving it as one unexplained number. 
+In accounting terms, this is essentially a volume-and-rate decomposition — the same logic as splitting a revenue variance into "how many transactions" vs. "value per transaction" rather than leaving it as one unexplained number.
 
-Members: 24 customers × 7.88 orders/customer × RM25.19/order ≈ RM4,761 ✔️
-Non-members: 40 customers × 5.28 orders/customer × RM18.48/order ≈ RM3,899 ✔️
+- Members: 24 customers × 8.54 orders/customer × RM25.50/order ≈ RM5,226 (actual: RM5,227.60)
+- Non-members: 40 customers × 4.88 orders/customer × RM17.61/order ≈ RM3,437 (actual: RM3,433.80)
 
-To round this up, members visit more often and spend more each time which is a stronger and more durable form of value than either effect alone would be.
+To sum up: members visit more often *and* spend more each time. That combination is a stronger, more durable form of value than either effect alone would be.
 
 ***
 
@@ -364,7 +370,7 @@ To round this up, members visit more often and spend more each time which is a s
 
 ### 8. Customer's Usual Order
 
-Does each customer have a "usual"? Return customer ID, drink name, number of times ordered, and rank showing all ties (via DENSE_RANK()), not just a single top pick.
+Does each customer have a "usual"? Return customer ID, drink name, number of times ordered, and rank showing all ties (via `DENSE_RANK()`), not just a single top pick limited to the first 5 customers by customer ID.
 
 ```sql
 WITH ranked_data AS (
@@ -372,7 +378,9 @@ WITH ranked_data AS (
         customer_id,
         coffee_name,
         COUNT(order_id) AS coffee_count,
-        DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY COUNT(order_id) DESC) AS coffee_rank
+        DENSE_RANK() OVER (
+            PARTITION BY customer_id 
+            ORDER BY COUNT(order_id) DESC) AS coffee_rank
     FROM orders
     INNER JOIN menu
         ON orders.menu_id = menu.menu_id
@@ -386,23 +394,32 @@ SELECT
     coffee_count,
     coffee_rank
 FROM ranked_data
-WHERE coffee_rank = 1
+WHERE 
+    coffee_rank = 1
+    AND customer_id <= 5
 ORDER BY customer_id;
 ```
 
 **✅ Result:**
 | customer_id | coffee_name  | coffee_count | coffee_rank |
-|-------------|--------------|-------------:|------------:|
-| 1           | Americano    | 3            | 1           |
+|-------------|--------------|--------------|-------------|
 | 1           | Caffe Latte  | 3            | 1           |
+| 1           | Americano    | 3            | 1           |
+| 2           | Affogato     | 2            | 1           |
 | 2           | Matcha Latte | 2            | 1           |
 | 2           | Cappuccino   | 2            | 1           |
-| 2           | Affogato     | 2            | 1           |
+| 3           | Mocha        | 4            | 1           |
+| 4           | Mocha        | 3            | 1           |
+| 4           | Affogato     | 3            | 1           |
+| 5           | Dirty Chai   | 2            | 1           |
+| 5           | Affogato     | 2            | 1           |
 
 **💡 Commentary:**
-Not every customer has a single clear "usual". Customer 1 is tied between two drinks (Americano and Caffe Latte - 3 orders each) and customer 2 is tied across three (Matcha Latte, Cappuccino, Affogato - 2 orders each). 
+Only customer 3 has a genuinely clear "usual" (Mocha, ordered 4 times with no tie). Everyone else here is tied between 2-3 drinks.
 
-This is exactly why the query uses `DENSE_RANK()` to show all ties rather than arbitrarily picking one drink per customer.
+So, for 4 of these 5 customers, "does each customer have a usual?" is really a "no, they have a rotation" which is exactly why showing ties via `DENSE_RANK()` mattered here. If we're to use a query that just grabbed a single top row per customer, say via `ROW_NUMBER()`, we would have arbitrarily picked one drink at random for each of these customers and presented it as their "usual", erroneously overstating how much loyalty any single drink actually has.
+
+One thing worth a mention - Affogato consistently showed up in 3 of these 5 customers' tied top spots (2, 4, and 5) which is worth checking later whether that holds up across the full 40 customers since a drink that keeps appearing as a joint-favourite says something different about its popularity than one drink that's a lot of people's single go-to.
 
 ### 9. Time to Convert
 
