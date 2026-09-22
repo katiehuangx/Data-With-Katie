@@ -15,6 +15,12 @@ The questions are grouped into 3 tiers each building on the last:
 
 If you'd like to practice rather than just read, try writing your own query for each question before checking the SQL and commentary underneath it, that's how this case study was actually built. 
 
+## How this was built
+
+I used Claude to help write and troubleshoot the SQL, but the analytical judgment is mine. Every query was run against a live PostgreSQL database and verified before being written up, not just accepted. 
+
+That process caught real issues along the way: a join bug that was silently multiplying revenue in Q7, a row-constructor edge case in Q10 that filtered out data I didn't mean to exclude and a data-generation issue in Q9 where nearly half of "converted" members hit an identical, suspiciously round number of days which turned out to be a flaw in how I'd generated the data, not a real pattern.
+
 ***
 
 All prices and revenue figures in this dataset are in Malaysian Ringgit (RM).
@@ -436,35 +442,109 @@ FROM orders
 INNER JOIN customers
 	ON orders.customer_id = customers.customer_id
 WHERE membership_start_date IS NOT NULL
-GROUP BY customers.customer_id, membership_start_date
+GROUP BY 
+    customers.customer_id, 
+    membership_start_date
 ORDER BY customers.customer_id;
 ```
 
 **✅ Result:**
+(showing first 5 rows)
 | customer_id | first_order_date | membership_start_date | days_to_convert | avg_days_to_convert |
-|-------------|-------------------|-------------------------|------------------:|-----------------------:|
-| 1           | 2025-01-01        | 2025-01-05              | 4                | 35.92                  |
-| 3           | 2025-01-01        | 2025-02-10              | 40               | 35.92                  |
-| 4           | 2025-01-15        | 2025-03-01              | 45               | 35.92                  |
-| 5           | 2025-01-01        | 2025-01-20              | 19               | 35.92                  |
-| 7           | 2025-01-01        | 2025-02-15              | 45               | 35.92                  |
+|-------------|-------------------|-------------------------|------------------|-----------------------|
+| 1           | 2025-01-01        | 2025-01-05              | 4                | 39.88                 |
+| 3           | 2025-01-01        | 2025-02-10              | 40               | 39.88                 |
+| 4           | 2025-01-15        | 2025-03-01              | 45               | 39.88                 |
+| 5           | 2025-01-01        | 2025-01-20              | 19               | 39.88                 |
+| 7           | 2025-01-01        | 2025-02-15              | 45               | 39.88                 |
 
 **💡 Commentary:**
-Conversion time is quite variable person-to-person in this sample from as fast as 4 days (customer 1) to as long as 45 days (customers 4 and 7) averaging around 36 days overall. 
+Conversion time varies a fair bit even in this small sample. Customer 1 joined just 4 days after their first order while customers 4 and 7 both took 45 days over 11 times longer. The overall average across all 24 members (customers who ever joined as members) is 39.88 days which sits close to the higher end of the number of days to convert rather than the middle, so "average" here doesn't mean "typical" in the way it might for a more evenly spread dataset.
 
-Worth investigating further whether the average conversion days of 36 days represent the entire data or was pulled up by a select few customers' days to convert. 
+Worth noting: 12 of these 24 members converted in exactly 45 days which traces back to how part of the dataset was generated rather than a genuine behavioural pattern, hence pulling up the average figure. 
 
 ### 10. Post-Lapse Drop-Off
 
-When a customer's membership lapses, does their ordering drop off afterward? Return customer ID, orders per month while an active member, and orders per month after lapsing.
+When a customer's membership lapses, does their ordering drop off afterward? Return customer ID, number of orders while active member, number of orders lapsed orders, and active and lapsed orders per month while an active member, and orders per month after lapsing.
+
+This query might be a little complex (it took me some time to figure it out too!) so I'm sharing the step-by-step to get you in the right direction.
+- Step 1: 
+    - In the 1st query wrapped as `orders_data` CTE, find the number of active and lapsed orders using `COUNT(CASE WHEN ...)`.
+    - Also, filter out where the `membership_end_date` isn't null. 
+
+| `order_date` relative to membership window                        | Counted as                        |
+|--------------------------------------------------------------------|-------------------------------------|
+| before `membership_start_date`                                     | neither (excluded from both counts) |
+| between `membership_start_date` and `membership_end_date` (inclusive) | active                          |
+| after `membership_end_date`                                        | lapsed                             |
+
+- Step 2: In the 2nd query wrapped as `snapshot_data` CTE, we retrieve the latest date of order in the entire data as a single value. More on this in the next step.
+- In Step 3:
+    - We find out the number of active and lapsed orders per month using this equation:
+        - number of active orders / (membership_end_date - membership_start_date) / 30.0
+        - number of lapsed orders / (snapshot date - membership_end_date) / 30.0
+
+    - Why? The absolute number of active and lapsed orders on its own doesn't tell much. But, dividing it with the number of months the customer has been member or lapsed member tells a more accurate story.
 
 ```sql
+WITH orders_data AS (
+    SELECT
+        orders.customer_id,
+        customers.membership_start_date,
+        customers.membership_end_date,
+        COUNT(
+            CASE WHEN orders.order_date BETWEEN customers.membership_start_date AND customers.membership_end_date THEN 1 END
+            ) AS active_orders,
+        COUNT(
+            CASE WHEN orders.order_date > customers.membership_end_date THEN 1 END
+            ) AS lapsed_orders
+    FROM orders
+    INNER JOIN customers 
+        ON orders.customer_id = customers.customer_id
+    WHERE customers.membership_end_date IS NOT NULL
+    GROUP BY 
+        orders.customer_id,
+        customers.membership_start_date,
+        customers.membership_end_date
+)
+, snapshot_data AS (
+    SELECT MAX(order_date) AS snapshot_date
+    FROM orders
+)
 
+SELECT
+	customer_id,
+    active_orders,
+    ROUND(
+        active_orders/
+        NULLIF((membership_end_date - membership_start_date) / 30.0, 0)
+        ,2) AS active_orders_per_month,
+    lapsed_orders,
+    ROUND(
+        lapsed_orders/
+        NULLIF((snapshot_date - membership_end_date) / 30.0, 0)
+        ,2) AS lapsed_orders_per_month
+FROM orders_data
+CROSS JOIN snapshot_data
+ORDER BY customer_id;
 ```
 
 **✅ Result:**
+| customer_id | active_orders | active_orders_per_month | lapsed_orders | lapsed_orders_per_month |
+|-------------|----------------|---------------------------|-----------------|----------------------------|
+| 1           | 8              | 1.63                       | 2               | 0.20                        |
+| 4           | 8              | 1.30                       | 3               | 0.43                        |
+| 7           | 4              | 1.35                       | 3               | 0.28                        |
+| 10          | 9              | 1.49                       | 4               | 0.49                        |
+| 13          | 6              | 1.18                       | 3               | 0.40                        |
+| 16          | 6              | 1.50                       | 2               | 0.21                        |
+| 19          | 7              | 1.15                       | 2               | 0.36                        |
+| 23          | 9              | 1.47                       | 1               | 0.16                        |
+| 25          | 9              | 1.49                       | 2               | 0.23                        |
+| 29          | 7              | 0.98                       | 3               | 0.70                        |
 
 **💡 Commentary:**
+
 
 ### 11. Tenure vs. Spend
 
