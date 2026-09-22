@@ -154,7 +154,7 @@ This confirms the earlier point with real numbers: almost the entire business ru
 
 What are customers actually drinking and which of those drinks are the real money-makers? 
 
-Return coffee name, total quantity sold, percentage of total volume, total revenue, and percentage of total revenue so it's clear whether the most popular item is also the most profitable one.
+Return coffee name, total quantity sold, percentage of total volume (rounded to 2 decimals), total revenue, and percentage of total revenue (rounded to 2 decimals) so it's clear whether the most popular item is also the most profitable one.
 
 ```sql
 SELECT
@@ -188,7 +188,7 @@ So, among these top five, the ranking by "most sold" and the ranking by "most pr
 
 ### 4. Peak Revenue Days
 
-Are there peak days — which days of the week bring in the most revenue? Return day of the week, number of times that day occurred, total revenue, and average revenue per occurrence limited to the top 5 days by total revenue.
+Are there peak days — which days of the week bring in the most revenue? Return day of the week, number of times that day occurred, total revenue, and average revenue per occurrence (rounded to 2 decimals) limited to the top 5 days by total revenue in decreasing order.
 
 ```sql
 SELECT
@@ -222,7 +222,7 @@ Worth investigating into why Monday performs so well. It could be something spec
 
 ### 5. Top Spending Customers
 
-Who are our best customers — which 10 customers spend the most overall? Return customer ID, total spent, percentage of total revenue, and spend rank limited to the top 10.
+Who are our best customers — which 10 customers spend the most overall? Return customer ID, total spent, percentage of total revenue (rounded to 2 decimals), and spend rank limited to the top 10 ordered by the highest total spent.
 
 ```sql
 SELECT
@@ -304,11 +304,9 @@ Out of 40 customers, 16 (40%) have never signed up for membership at all - the s
 
 ### 7. Member vs. Non-Member Value
 
-Are members *actually* valuable? 
+Are members *actually* valuable? For every order, work out whether the customer was a member or a non-member *at the time that specific order was placed* and not their current status. The same customer can land in both groups depending on when each order happened relative to their membership dates. 
 
-For every order, work out whether the customer was a member or a non-member *at the time that specific order was placed* and not their current status. The same customer can land in both groups depending on when each order happened relative to their membership dates. 
-
-Return status (member/non-member), number of customers, total orders, average orders per customer, total revenue, and average spend per order.
+Return status (member/non-member), number of customers, total orders, average orders per customer (rounded to 2 decimals), total revenue, and average spend per order (rounded to 2 decimals).
 
 How to read `membership_start_date` and `membership_end_date` together:
 
@@ -429,7 +427,7 @@ One thing worth a mention - Affogato consistently showed up in 3 of these 5 cust
 
 ### 9. Time to Convert
 
-How long does it typically take a customer to convert into a member? Return customer ID, first order date, membership start date, days to convert, and the average days-to-convert across all members.
+How long does it typically take a customer to convert into a member? Return customer ID, first order date, membership start date, days to convert, and the average days-to-convert across all members (rounded to 2 decimals).
 
 ```sql
 SELECT
@@ -465,12 +463,15 @@ Worth noting: 12 of these 24 members converted in exactly 45 days which traces b
 
 ### 10. Post-Lapse Drop-Off
 
-When a customer's membership lapses, does their ordering drop off afterward? Return customer ID, number of orders while active member, number of orders lapsed orders, and active and lapsed orders per month while an active member, and orders per month after lapsing.
+When a customer's membership lapses, does their ordering drop off afterward? 
+
+Return customer ID, total orders placed while an active member, orders per month while an active member (rounded to 2 decimals places), total orders placed after lapsing, and orders per month after lapsing (rounded to 2 decimals places) sorted by customer ID.
 
 This query might be a little complex (it took me some time to figure it out too!) so I'm sharing the step-by-step to get you in the right direction.
 - Step 1: 
     - In the 1st query wrapped as `orders_data` CTE, find the number of active and lapsed orders using `COUNT(CASE WHEN ...)`.
-    - Also, filter out where the `membership_end_date` isn't null. 
+    - Only keep data where the `membership_end_date` isn't null to exclude customers who never joined or are still active.
+    - Group by customer ID plus the membership dates.
 
 | `order_date` relative to membership window                        | Counted as                        |
 |--------------------------------------------------------------------|-------------------------------------|
@@ -479,11 +480,10 @@ This query might be a little complex (it took me some time to figure it out too!
 | after `membership_end_date`                                        | lapsed                             |
 
 - Step 2: In the 2nd query wrapped as `snapshot_data` CTE, we retrieve the latest date of order in the entire data as a single value. More on this in the next step.
-- In Step 3:
-    - We find out the number of active and lapsed orders per month using this equation:
-        - number of active orders / (membership_end_date - membership_start_date) / 30.0
-        - number of lapsed orders / (snapshot date - membership_end_date) / 30.0
-
+- Step 3:
+    - First, convert the membership length from days into months: (membership_end_date − membership_start_date) ÷ 30.0.
+    - Then, divide: number of active orders ÷ number of months as an active member.
+    - Do the same for lapsed orders by using (snapshot date - membership_end_date) instead. 
     - Why? The absolute number of active and lapsed orders on its own doesn't tell much. But, dividing it with the number of months the customer has been member or lapsed member tells a more accurate story.
 
 ```sql
@@ -544,11 +544,13 @@ ORDER BY customer_id;
 | 29          | 7              | 0.98                       | 3               | 0.70                        |
 
 **💡 Commentary:**
+Every single one of these 10 lapsed customers orders less often than they did while active which is a pretty clean result. But the size of the drop varies a lot: customer 29 barely slows down going from 0.98 to 0.70 orders/month (about a 29% drop) while customer 23 falls off significantly from 1.47 down to 0.16 (about 89% drop) - that's close to disappearing as a customer entirely! 😦
 
+### 11. Tenure vs. Spend: 
 
-### 11. Tenure vs. Spend
+Do long-tenured members spend more than newer members? 
 
-Do long-tenured members spend more than newer members? Return tenure cohort (grouped by membership start month), number of customers, and average total spend per customer.
+Return tenure cohort (grouped by membership start month), number of customers, and average total spend per customer (rounded to 2 decimals).
 
 ```sql
 
@@ -564,7 +566,9 @@ Do long-tenured members spend more than newer members? Return tenure cohort (gro
 
 ### 12. RFM Customer Segmentation
 
-Which customers are most valuable when you weigh how recently, how often, and how much they spend — not spend alone? For each customer, calculate recency (days since their last order), frequency (total orders), and monetary value (total spend), then score each dimension into quartiles using NTILE(4). Return customer ID, recency, frequency, monetary value, and the three quartile scores.
+Which customers are most valuable when you weigh how recently, how often, and how much they spend — not spend alone? For each customer, calculate recency (days since their last order), frequency (total orders), and monetary value (total spend), then score each dimension into quartiles using NTILE(4). 
+
+Return customer ID, recency, frequency, monetary value, and the three quartile scores.
 
 ```sql
 
@@ -574,115 +578,31 @@ Which customers are most valuable when you weigh how recently, how often, and ho
 
 **💡 Commentary:**
 
-### 14. Do members come back more often than non-members?
+### 13. Membership Cohort Retention
 
-<details> 
-<summary> ▶️ Show solution</summary>
+Grouping members by the month they joined, what share of each cohort was still ordering in the 1st, 2nd, and 3rd month after joining? 
 
-```sql
-
-```
-
-✅ Expected result:
-
-
-</details>
-
-### 15. Does membership change behaviour — do customers order more after becoming members?
-
-<details> 
-<summary> ▶️ Show solution</summary>
+Return join cohort (month), months since joining, and % of that cohort with at least one order in that period (rounded to 2 decimal places). (Note: cohorts are small — 5-7 members each — so treat the percentages as directional, not statistically robust.)
 
 ```sql
 
 ```
 
-✅ Expected result:
+**✅ Result:**
 
+**💡 Commentary:**
 
-</details>
+### 14. Month-over-Month Revenue Growth
 
-### 16. How long does it usually take for a customer to “convert” into a member?
+Using 2025 order data only, how is revenue trending month to month — accelerating, slowing, or flat? 
 
-<details> 
-<summary> ▶️ Show solution</summary>
-
-```sql
-
-```
-
-✅ Expected result:
-
-
-</details>
-
-### 17. When customers stop being members, do they slowly stop ordering too?
-
-<details> 
-<summary> ▶️ Show solution</summary>
+Return month, total revenue, the previous month's revenue, and % change (rounded to 2 decimal places), ordered chronologically by month, using LAG(). (Note: 2026 data is excluded — it's a single month containing all of the original "walk-in" orders and would show an artificial spike rather than a real trend.)
 
 ```sql
 
 ```
 
-✅ Expected result:
+**✅ Result:**
 
-
-</details>
-
-### 18. Who are the true VIPs — our top 5 highest-spending customers?
-
-<details> 
-<summary> ▶️ Show solution</summary>
-
-```sql
-
-```
-
-✅ Expected result:
-
-
-</details>
-
-### 19. Are we relying too much on a few customers — how much revenue comes from our top 20%?
-
-<details> 
-<summary> ▶️ Show solution</summary>
-
-```sql
-
-```
-
-✅ Expected result:
-
-
-</details>
-
-### 20. Do we have a retention problem — how many customers only ordered once and never came back?
-
-<details> 
-<summary> ▶️ Show solution</summary>
-
-```sql
-
-```
-
-✅ Expected result:
-
-
-</details>
-
-### 21. Do early members behave differently — are long-time members more valuable than newer ones?
-
-<details> 
-<summary> ▶️ Show solution</summary>
-
-```sql
-
-```
-
-✅ Expected result:
-
-
-</details>
+**💡 Commentary:**
 
