@@ -9,13 +9,15 @@ Ems Coffee is a small café running a customer membership program. This case stu
 
 The questions are grouped into 3 tiers each building on the last:
 
-- Core (Q1-7) the fundamentals: aggregate functions (COUNT, SUM, AVG), joins across tables, CASE statements for segmentation, and an introduction to window functions.
-- Bonus (Q8-12) a step-up: CTEs, DENSE_RANK() with PARTITION BY, and reasoning about dates relative to a moving window — was a given order placed before, during, or after a customer's membership.
-- Advanced (Q13-15) techniques used in real analytics work: NTILE() for percentile-based customer segmentation (RFM), cohort-based retention analysis, and LAG() for period-over-period trend comparisons.
+- Core (Q1-7) - the fundamentals: aggregate functions (COUNT, SUM, AVG), joins, CASE statements for segmentation, and an introduction to window functions.
+- Advanced (Q13-15) - CTEs, DENSE_RANK() with PARTITION BY, and reasoning about dates relative to a moving window, NTILE() for percentile-based customer segmentation (RFM), and LAG() for period-over-period trend comparisons.
 
-If you'd like to practice rather than just read, try writing your own query for each question before checking the SQL and commentary underneath it, that's how this case study was actually built. 
+**‼️ One thing worth saying upfront:** 
+The SQL shown for each question is one way to solve it, not the only way. There's usually more than one reasonable solution to the same answer - a different join, a CTE instead of a subquery, a different window function, so if your query looks nothing like mine, but outputs the same underlying result, that's not wrong, it's just a different call. 
 
-## How this was built
+Use your own judgement 💡 for how to structure and present your solution, as long as the gist of the result matches.
+
+## 🔧 How this was built
 
 I used Claude to help write and troubleshoot the SQL, but the analytical judgment is mine. Every query was run against a live PostgreSQL database and verified before being written up, not just accepted. 
 
@@ -33,28 +35,48 @@ Definitions used throughout:
 ## Core Questions
 
 1. [Orders & Revenue Overview](#1-orders--revenue-overview): How busy was the café — how many orders did we serve and how much revenue did we bring in? Return total orders and total revenue.
+
 2. [Customer Loyalty Segments](#2-customer-loyalty-segments): Which customers keep coming back? Categorise customers with more than 6 orders as 'regulars', exactly 1 order as 'one-time', and everyone else as 'occasional'. Return customer ID, total orders, and visit frequency category, sorted by highest orders.
-3. [Popularity vs. Profitability](#3-popularity-vs-profitability): What are customers actually drinking, and which of those drinks are the real money-makers? Return coffee name, total quantity sold, percentage of total volume, total revenue, and percentage of total revenue so it's clear whether the most popular item is also the most profitable one.
-4. [Peak Revenue Days](#4-peak-revenue-days): Are there peak days - which weekdays bring in the most revenue? Return weekday name and total revenue.
-5. [Top Spending Customers](#5-top-spending-customers): Who are our best customers - which 10 customers spend the most overall? Return customer ID, total spent, percentage of total revenue, and spend rank, limited to the top 10.
+
+3. [Popularity vs. Profitability](#3-popularity-vs-profitability): What are customers actually drinking, and which of those drinks are the real money-makers? Return coffee name, total quantity sold, percentage of total volume (rounded to 2 decimal places), total revenue, and percentage of total revenue (rounded to 2 decimal places) — so it's clear whether the most popular item is also the most profitable one.
+
+4. [Peak Revenue Days](#4-peak-revenue-days): Are there peak days — which days of the week bring in the most revenue? Return day of the week, number of times that day occurred, total revenue, and average revenue per occurrence (rounded to 2 decimal places), sorted by total revenue descending and limited to the top 5 days.
+
+5. [Top Spending Customers](#5-top-spending-customers): Who are our best customers — which 10 customers spend the most overall? Return customer ID, total spent, percentage of total revenue (rounded to 2 decimal places), and spend rank, sorted by total spent descending and limited to the top 10.
+
 6. [Membership Status Breakdown](#6-membership-status-breakdown): How many of our customers are currently members, lapsed, or never joined? Return membership status (active member, lapsed member, never joined) and customer count for each.
-7. [Member vs. Non-Member Value](#7-member-vs-non-member-value): Are members actually valuable? For every order, work out whether that customer was a member or a non-member at the time of that specific order — not their current status. The same customer can land in both groups, depending on when each order happened relative to their membership dates. Return: status (member/non-member), number of customers, total orders, average orders per customer, total revenue, and average spend per order.
 
-## Bonus Questions
+7. [Member vs. Non-Member Value](#7-member-vs-non-member-value): Are members actually valuable?
 
-8. [Average Order Value](#8-average-order-value): On average, how much does a customer spend each time they order? Return customer ID and average spend per order, sorted by highest average.
-9. [Customer's Usual Order](#9-customers-usual-order): Does each customer have a "usual"? Return each customer's most frequently ordered drink(s) — show all ties (`DENSE_RANK()` so tied drinks appear together).
-10. [Bulk Order Detection](#10-bulk-order-detection): Are there bulk buyers? Return orders with quantity ≥ 5.
-11. [Membership Behaviour Shift](#11-membership-behaviour-shift): Does membership change behaviour — do customers order more after becoming a member than before?
-12. [Time to Convert](#12-time-to-convert): How long does it typically take a customer to convert into a member (first order → membership start date)?
-13. [Post-Lapse Drop-Off](#13-post-lapse-drop-off): When a customer's membership lapses, does their ordering drop off afterward?
-14. [Tenure vs. Spend](#14-tenure-vs-spend): Do long-tenured members spend more than newer members? (Cohort by `membership_start_date`, compare spend.)
+    For every order, work out whether that customer was a member or a non-member *at the time of that specific order* — not their current status. The same customer can land in both groups, depending on when each order happened relative to their membership dates.
+
+    Return: status (member/non-member), number of customers, total orders, average orders per customer (rounded to 2 decimal places), total revenue, and average spend per order (rounded to 2 decimal places).
+
+    > **How to read `membership_start_date` and `membership_end_date` together:**
+    >
+    > | membership_start_date | membership_end_date | status |
+    > |------------------------|----------------------|----------------|
+    > | NULL | NULL | never joined |
+    > | has a date | NULL | active member |
+    > | has a date | has a date | lapsed member |
+
+## Advanced Questions
+
+8. [Customer's Usual Order](#8-customers-usual-order): Does each customer have a "usual"? Return customer ID, drink name, number of times ordered, and rank — showing all ties (via `DENSE_RANK()`), not just a single top pick — sorted by customer ID, limited to the first 5 customers (note: ties mean some of those 5 customers may contribute more than one row each).
+
+9. [Time to Convert](#9-time-to-convert): How long does it typically take a customer to convert into a member? Return customer ID, first order date, membership start date, days to convert, and the average days-to-convert across all members (rounded to 2 decimal places) — sorted by customer ID, limited to the first 5 customers (the average itself should still reflect all members, not just the 5 shown).
+
+10. [Post-Lapse Drop-Off](#10-post-lapse-drop-off): When a customer's membership lapses, does their ordering drop off afterward? Return customer ID, total orders placed while an active member, orders per month while an active member (rounded to 2 decimal places), total orders placed after lapsing, and orders per month after lapsing (rounded to 2 decimal places), sorted by customer ID.
+
+11. [RFM Customer Segmentation](#11-rfm-customer-segmentation): Which customers are most valuable when you weigh how recently, how often, and how much they spend — not spend alone? For each customer, calculate recency (days since their last order), frequency (total orders), and monetary value (total spend), then score each dimension into quartiles using `NTILE(4)`. Return customer ID, recency, frequency, monetary value, and the three quartile scores. *(Note: a higher score is better across all three dimensions — quartile 4 means most recent, most frequent, or highest spend; quartile 1 means the opposite. Recency needs to be scored in the opposite sort direction from frequency and monetary to achieve this, since a smaller day-count is what counts as "better" for recency.)*
+
+12. [Month-over-Month Revenue Growth](#12-month-over-month-revenue-growth): Using 2025 order data only, how is revenue trending month to month — accelerating, slowing, or flat? Return month, total revenue, the previous month's revenue, and % change (rounded to 2 decimal places), ordered chronologically by month, using `LAG()`. *(Note: 2026 data is excluded — it's a single month containing all of the original "walk-in" orders and would show an artificial spike rather than a real trend.)*
 
 ## Case Study Answers
 
 ### 1. Orders & Revenue Overview
 
-How busy was the café — how many orders did we serve and how much revenue did we bring in? Return total orders and total revenue.
+How busy was the café - how many orders did we serve and how much revenue did we bring in? Return total orders and total revenue.
 
 ```sql
 SELECT
@@ -149,12 +171,11 @@ Regular customers make up 75% (30 out of 40 customers) of Ems Coffee's customers
 
 This confirms the earlier point with real numbers: almost the entire business runs on a small core of repeat customers, not a wide base of casual visitors.
 
-
 ### 3. Popularity vs. Profitability 
 
-What are customers actually drinking and which of those drinks are the real money-makers? 
+What are customers actually drinking, and which of those drinks are the real money-makers? 
 
-Return coffee name, total quantity sold, percentage of total volume (rounded to 2 decimals), total revenue, and percentage of total revenue (rounded to 2 decimals) so it's clear whether the most popular item is also the most profitable one.
+Return coffee name, total quantity sold, percentage of total volume (rounded to 2 decimal places), total revenue, and percentage of total revenue (rounded to 2 decimal places) so it's clear whether the most popular item is also the most profitable one.
 
 ```sql
 SELECT
@@ -188,7 +209,9 @@ So, among these top five, the ranking by "most sold" and the ranking by "most pr
 
 ### 4. Peak Revenue Days
 
-Are there peak days — which days of the week bring in the most revenue? Return day of the week, number of times that day occurred, total revenue, and average revenue per occurrence (rounded to 2 decimals) limited to the top 5 days by total revenue in decreasing order.
+Are there peak days — which days of the week bring in the most revenue? 
+
+Return day of the week, number of times that day occurred, total revenue, and average revenue per occurrence (rounded to 2 decimal places) sorted by total revenue descending and limited to the top 5 days.
 
 ```sql
 SELECT
@@ -222,7 +245,9 @@ Worth investigating into why Monday performs so well. It could be something spec
 
 ### 5. Top Spending Customers
 
-Who are our best customers — which 10 customers spend the most overall? Return customer ID, total spent, percentage of total revenue (rounded to 2 decimals), and spend rank limited to the top 10 ordered by the highest total spent.
+Who are our best customers - which 10 customers spend the most overall? 
+
+Return customer ID, total spent, percentage of total revenue (rounded to 2 decimal places), and spend rank sorted by total spent descending and limited to the top 10.
 
 ```sql
 SELECT
@@ -304,9 +329,9 @@ Out of 40 customers, 16 (40%) have never signed up for membership at all - the s
 
 ### 7. Member vs. Non-Member Value
 
-Are members *actually* valuable? For every order, work out whether the customer was a member or a non-member *at the time that specific order was placed* and not their current status. The same customer can land in both groups depending on when each order happened relative to their membership dates. 
+Are members *actually* valuable? For every order, work out whether that customer was a member or a non-member *at the time of that specific order* — not their current status. The same customer can land in both groups depending on when each order happened relative to their membership dates. 
 
-Return status (member/non-member), number of customers, total orders, average orders per customer (rounded to 2 decimals), total revenue, and average spend per order (rounded to 2 decimals).
+Return status (member/non-member), number of customers, total orders, average orders per customer (rounded to 2 decimal places), total revenue, and average spend per order (rounded to 2 decimal places).
 
 How to read `membership_start_date` and `membership_end_date` together:
 
@@ -368,13 +393,13 @@ In accounting terms, this is essentially a volume-and-rate decomposition — the
 
 To sum up: members visit more often *and* spend more each time. That combination is a stronger, more durable form of value than either effect alone would be.
 
-***
-
-## Bonus Questions
+## Advanced Questions
 
 ### 8. Customer's Usual Order
 
-Does each customer have a "usual"? Return customer ID, drink name, number of times ordered, and rank showing all ties (via `DENSE_RANK()`), not just a single top pick limited to the first 5 customers by customer ID.
+Does each customer have a "usual"? 
+
+Return customer ID, drink name, number of times ordered, and rank — showing all ties (via `DENSE_RANK()`), not just a single top pick sorted by customer ID, limited to the first 5 customers *(note: ties mean some of those 5 customers may contribute more than one row each)*.
 
 ```sql
 WITH ranked_data AS (
@@ -427,7 +452,9 @@ One thing worth a mention - Affogato consistently showed up in 3 of these 5 cust
 
 ### 9. Time to Convert
 
-How long does it typically take a customer to convert into a member? Return customer ID, first order date, membership start date, days to convert, and the average days-to-convert across all members (rounded to 2 decimals).
+How long does it typically take a customer to convert into a member? 
+
+Return customer ID, first order date, membership start date, days to convert, and the average days-to-convert across all members (rounded to 2 decimal places) sorted by customer ID and limited to the first 5 customers (the average itself should still reflect all members, not just the 5 shown).
 
 ```sql
 SELECT
@@ -465,7 +492,9 @@ Worth noting: 12 of these 24 members converted in exactly 45 days which traces b
 
 When a customer's membership lapses, does their ordering drop off afterward? 
 
-Return customer ID, total orders placed while an active member, orders per month while an active member (rounded to 2 decimals places), total orders placed after lapsing, and orders per month after lapsing (rounded to 2 decimals places) sorted by customer ID.
+Return customer ID, total orders placed while an active member, orders per month while an active member (rounded to 2 decimal places), total orders placed after lapsing, and orders per month after lapsing (rounded to 2 decimal places) sorted by customer ID.
+
+**Step-by-Step Breakdown:**
 
 This query might be a little complex (it took me some time to figure it out too!) so I'm sharing the step-by-step to get you in the right direction.
 - Step 1: 
@@ -546,43 +575,137 @@ ORDER BY customer_id;
 **💡 Commentary:**
 Every single one of these 10 lapsed customers orders less often than they did while active which is a pretty clean result. But the size of the drop varies a lot: customer 29 barely slows down going from 0.98 to 0.70 orders/month (about a 29% drop) while customer 23 falls off significantly from 1.47 down to 0.16 (about 89% drop) - that's close to disappearing as a customer entirely! 😦
 
-### 11. Tenure vs. Spend: 
-
-Do long-tenured members spend more than newer members? 
-
-Return tenure cohort (grouped by membership start month), number of customers, and average total spend per customer (rounded to 2 decimals).
-
-```sql
-
-```
-
-**✅ Result:**
-
-**💡 Commentary:**
-
-***
-
-## Advanced Questions
-
-### 12. RFM Customer Segmentation
+### 11. Recency, Frequency, and Monetary (RFM) Customer Segmentation
 
 Which customers are most valuable when you weigh how recently, how often, and how much they spend — not spend alone? For each customer, calculate recency (days since their last order), frequency (total orders), and monetary value (total spend), then score each dimension into quartiles using NTILE(4). 
 
 Return customer ID, recency, frequency, monetary value, and the three quartile scores.
 
-```sql
+*(Note: A higher score is better across all three dimensions — quartile 4 means most recent, most frequent, or highest spend; quartile 1 means the opposite. Recency needs to be scored in the opposite sort direction from frequency and monetary to achieve this since a smaller day-count is what counts as "better" for recency.)*
 
+**What's RFM?**
+
+Here's a quick rundown of what RFM Customer Segmentation is:
+- **Recency 📅** is how long it's been since their last order (in days) as in "how active/engaged they are". 
+- **Frequency ☕️** is just their total order count, basically "how often they show up". 
+- **Monetary 💵** is total spend - "how much they've put into the cashier overall". 
+
+The idea is that ranking customers by any single one of these on its own gives a distorted picture. A customer could spend a lot in total just because they were a customer for years, even if they've gone quiet recently, or someone could order constantly, but always in small amounts. RFM looks at all three at once instead of picking one and calling it "value."
+
+Here's where `NTILE(4)` comes into the picture.
+
+It turns recency, frequency, and monetary numbers into a comparable score, splitting the customers into 4 equal-sized buckets based on where they rank on that metric (quartile 1 through quartile 4) so instead of comparing "RM384.30" to "RM12.50", you're comparing "top 25% spender" to "bottom 25% spender." 
+
+To put it into query perspective:
+- **Recency** = Days between each customer's last order and the most recent order date *in the dataset*
+- **Frequency** = Total number of orders
+- **Monetary** = Total amount spend across all orders
+
+```sql
+WITH customer_metrics AS (
+    SELECT 
+        customer_id,
+        MAX(order_date) AS last_order_date,
+        COUNT(DISTINCT order_id) AS frequency,
+        SUM(quantity * price) AS monetary
+    FROM orders
+    INNER JOIN menu
+        ON orders.menu_id = menu.menu_id
+    GROUP BY customer_id
+)
+, snapshot_data AS(
+    SELECT MAX(order_date) AS snapshot_date
+    FROM orders
+)
+
+SELECT 
+	customer_id,
+    snapshot_date - last_order_date AS recency,
+    frequency,
+    monetary,
+	NTILE(4) OVER (ORDER BY snapshot_date - last_order_date DESC) AS recency_score,
+    NTILE(4) OVER (ORDER BY frequency ASC) AS frequency_score,
+    NTILE(4) OVER (ORDER BY monetary ASC) AS monetary_score
+FROM customer_metrics
+CROSS JOIN snapshot_data
+ORDER BY customer_id;
 ```
 
 **✅ Result:**
+(showing first 10 rows)
+| customer_id | recency | frequency | monetary | recency_score | frequency_score | monetary_score |
+|-------------|---------|-----------|----------|----------------|-------------------|------------------|
+| 1           | 128     | 11        | 308.40   | 2              | 2                  | 4                |
+| 2           | 117     | 10        | 143.10   | 2              | 2                  | 2                |
+| 3           | 64      | 14        | 284.40   | 3              | 4                  | 3                |
+| 4           | 143     | 13        | 300.00   | 1              | 4                  | 3                |
+| 5           | 104     | 9         | 198.70   | 2              | 2                  | 2                |
+| 6           | 0       | 14        | 202.80   | 4              | 4                  | 2                |
+| 7           | 153     | 10        | 248.20   | 1              | 2                  | 3                |
+| 8           | 73      | 13        | 315.30   | 3              | 4                  | 4                |
+| 9           | 7       | 12        | 212.10   | 4              | 3                  | 2                |
+| 10          | 97      | 15        | 348.30   | 3              | 4                  | 4                |
+
+Let's go one step further and keep only customers who scored 4-4-4 on all customer metrics.
+
+```sql
+WITH customer_metrics AS (
+SELECT 
+	customer_id,
+    MAX(order_date) AS last_order_date,
+    COUNT(DISTINCT order_id) AS frequency,
+    SUM(quantity * price) AS monetary
+FROM orders
+INNER JOIN menu
+    ON orders.menu_id = menu.menu_id
+GROUP BY customer_id
+)
+, snapshot_data AS(
+SELECT MAX(order_date) AS snapshot_date
+FROM orders
+)
+, scores AS (
+SELECT 
+	customer_id,
+    snapshot_date - last_order_date AS recency,
+    frequency,
+    monetary,
+	NTILE(4) OVER (ORDER BY snapshot_date - last_order_date DESC) AS recency_score,
+    NTILE(4) OVER (ORDER BY frequency ASC) AS frequency_score,
+    NTILE(4) OVER (ORDER BY monetary ASC) AS monetary_score
+FROM customer_metrics
+CROSS JOIN snapshot_data
+)
+
+SELECT *
+FROM scores
+WHERE 
+	recency_score = 4
+    AND frequency_score = 4
+    AND monetary_score = 4
+ORDER BY customer_id;
+```
+
+**✅ Result:**
+| customer_id | recency | frequency | monetary | recency_score | frequency_score | monetary_score |
+|-------------|---------|-----------|----------|-----------------|--------------------|----------------------|
+| 15          | 39      | 13        | 310.30   | 4               | 4                  | 4                    |
+| 29          | 55      | 14        | 327.40   | 4               | 4                  | 4                    |
 
 **💡 Commentary:**
+2 customers score a clean 4-4-4 across the board (customers 15 and 29) - recently active, ordering frequently, and among the higher spenders. These are your model customers.
 
-### 13. Membership Cohort Retention
+At the other end, 6 customers score 1-1-1. All 10 of the lowest-scoring customers (31-40) turn out to be people who never joined the membership program at all, mostly 1 to 5 lifetime orders and spent under RM80 total. This lines up with the "one-time"/"occasional" segments from Q2.
 
-Grouping members by the month they joined, what share of each cohort was still ordering in the 1st, 2nd, and 3rd month after joining? 
+The more interesting group sits in between: 4 customers (4, 7, 13, 23) score a 1 on recency despite scoring 3 or 4 on frequency or monetary, meaning they used to be high-spending customers, but haven't ordered in a while. Customer 23 stands out here specifically with a RM384.30 total spend, the highest in the dataset, but hasn't ordered in 153 days. That's a concrete win-back target: not a customer to write off, but one worth a nudge before they're gone for good.
 
-Return join cohort (month), months since joining, and % of that cohort with at least one order in that period (rounded to 2 decimal places). (Note: cohorts are small — 5-7 members each — so treat the percentages as directional, not statistically robust.)
+### 12. Month-over-Month Revenue Growth
+
+ Using 2025 order data only, how is revenue trending month to month - accelerating, slowing, or flat? 
+ 
+ Return month, total revenue, the previous month's revenue, and % change (rounded to 2 decimal places), ordered chronologically by month, using LAG(). 
+ 
+ *(Note: 2026 data is excluded — it's a single month containing all of the original "walk-in" orders and would show an artificial spike rather than a real trend.)*
 
 ```sql
 
@@ -596,13 +719,57 @@ Return join cohort (month), months since joining, and % of that cohort with at l
 
 Using 2025 order data only, how is revenue trending month to month — accelerating, slowing, or flat? 
 
-Return month, total revenue, the previous month's revenue, and % change (rounded to 2 decimal places), ordered chronologically by month, using LAG(). (Note: 2026 data is excluded — it's a single month containing all of the original "walk-in" orders and would show an artificial spike rather than a real trend.)
+Return month, total revenue, the previous month's revenue, and % change (rounded to 2 decimal places), ordered chronologically by month, using LAG(). 
+
+*(Note: 2026 data is excluded. It's a single month containing all of the original "walk-in" orders and would show an artificial spike rather than a real trend.)*
 
 ```sql
+WITH revenue_data AS (
+    SELECT
+        TO_CHAR(order_date, 'YYYY-MM') AS mth_yr,
+        SUM(quantity * price) AS total_revenue
+    FROM orders
+    INNER JOIN menu
+        ON orders.menu_id = menu.menu_id
+    WHERE order_date < '2026-01-01'
+    GROUP BY TO_CHAR(order_date, 'YYYY-MM')
+)
+, lag_data AS (
+    SELECT
+        mth_yr,
+        total_revenue,
+        LAG(total_revenue) OVER (ORDER BY mth_yr) AS prev_mth_revenue
+    FROM revenue_data
+)
 
+SELECT
+	mth_yr,
+    total_revenue AS current_mth_revenue,
+    LAG(total_revenue) OVER (ORDER BY mth_yr) AS prev_mth_revenue,
+    ROUND(100.0 * (total_revenue - prev_mth_revenue)/prev_mth_revenue,2) AS pct_change 
+FROM lag_data
+ORDER BY mth_yr;
 ```
 
 **✅ Result:**
+| mth_yr  | total_revenue | prev_mth_revenue | pct_change |
+|---------|---------------|------------------|------------|
+| 2025-01 |        874.10 |                  |            |
+| 2025-02 |        678.90 |           874.10 |     -22.33 |
+| 2025-03 |        783.20 |           678.90 |      15.36 |
+| 2025-04 |        896.60 |           783.20 |      14.48 |
+| 2025-05 |        918.40 |           896.60 |       2.43 |
+| 2025-06 |        638.50 |           918.40 |     -30.48 |
+| 2025-07 |        815.30 |           638.50 |      27.69 |
+| 2025-08 |        634.60 |           815.30 |     -22.16 |
+| 2025-09 |        467.50 |           634.60 |     -26.33 |
+| 2025-10 |        477.60 |           467.50 |       2.16 |
+| 2025-11 |        556.00 |           477.60 |      16.42 |
+| 2025-12 |        362.40 |           556.00 |     -34.82 |
 
 **💡 Commentary:**
+Revenue varies a lot from month to month so there isn't a steady acceleration or slowdown. 
 
+If there's a pattern at all, it's that the second half of the year runs slower than the first; roughly RM4,790 total for Jan-Jun vs. RM3,313 for Jul-Dec with December being the weakest month at RM362.40. 
+
+***
