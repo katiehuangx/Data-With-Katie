@@ -15,6 +15,8 @@ The questions are grouped into 3 tiers each building on the last:
 **‼️ One thing worth saying upfront:** 
 The SQL shown for each question is one way to solve it, not the only way. There's usually more than one reasonable solution to the same answer - a different join, a CTE instead of a subquery, a different window function, so if your query looks nothing like mine, but outputs the same underlying result, that's not wrong, it's just a different call. 
 
+This case study was built with Claude for drafting and iteration, but every query was run and verified against a live database, and every result checked for logical correctness (not just "does it run") before being included here. Where I found a data limitation or a genuine caveat worth flagging, it's noted directly in the questions file rather than glossed over.
+
 Use your own judgement 💡 for how to structure and present your solution, as long as the gist of the result matches.
 
 ## 🔧 How this was built
