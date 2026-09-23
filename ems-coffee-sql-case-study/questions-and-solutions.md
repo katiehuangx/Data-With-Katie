@@ -10,7 +10,7 @@ Ems Coffee is a small café running a customer membership program. This case stu
 The questions are grouped into 3 tiers each building on the last:
 
 - Core (Q1-7) - the fundamentals: aggregate functions (COUNT, SUM, AVG), joins, CASE statements for segmentation, and an introduction to window functions.
-- Advanced (Q13-15) - CTEs, DENSE_RANK() with PARTITION BY, and reasoning about dates relative to a moving window, NTILE() for percentile-based customer segmentation (RFM), and LAG() for period-over-period trend comparisons.
+- Advanced (Q8-12) - CTEs, DENSE_RANK() with PARTITION BY, and reasoning about dates relative to a moving window, NTILE() for percentile-based customer segmentation (RFM), and LAG() for period-over-period trend comparisons.
 
 **‼️ One thing worth saying upfront:** 
 The SQL shown for each question is one way to solve it, not the only way. There's usually more than one reasonable solution to the same answer - a different join, a CTE instead of a subquery, a different window function, so if your query looks nothing like mine, but outputs the same underlying result, that's not wrong, it's just a different call. 
@@ -21,9 +21,9 @@ Use your own judgement 💡 for how to structure and present your solution, as l
 
 ## 🔧 How this was built
 
-I used Claude to help write and troubleshoot the SQL, but the analytical judgment is mine. Every query was run against a live PostgreSQL database and verified before being written up, not just accepted. 
+I used Claude to draft and troubleshoot the SQL, but the analytical judgment and verification is mine. Every query was run against a live PostgreSQL database and checked for correctness, not just accepted because it executed without error.
 
-That process caught real issues along the way: a join bug that was silently multiplying revenue in Q7, a row-constructor edge case in Q10 that filtered out data I didn't mean to exclude and a data-generation issue in Q9 where nearly half of "converted" members hit an identical, suspiciously round number of days which turned out to be a flaw in how I'd generated the data, not a real pattern.
+That process caught real issues along the way: a `GROUP BY` granularity bug in Q10 that silently collapsed the results to one row per order instead of one row per customer and a data-generation artifact in Q9 where exactly half of converted members (12 of 24) hit an identical, suspiciously round 45-day conversion time - a flaw in how the practice data was generated, not a real behavioural pattern.
 
 ***
 
@@ -74,7 +74,9 @@ Definitions used throughout:
 
 12. [Month-over-Month Revenue Growth](#12-month-over-month-revenue-growth): Using 2025 order data only, how is revenue trending month to month — accelerating, slowing, or flat? Return month, total revenue, the previous month's revenue, and % change (rounded to 2 decimal places), ordered chronologically by month, using `LAG()`. *(Note: 2026 data is excluded — it's a single month containing all of the original "walk-in" orders and would show an artificial spike rather than a real trend.)*
 
-## Case Study Answers
+## Case Study Solution
+
+## Core Questions 
 
 ### 1. Orders & Revenue Overview
 
@@ -89,16 +91,13 @@ INNER JOIN menu
     ON orders.menu_id = menu.menu_id;
 ```
 
-**⚠️ Common Pitfall:**
-It's tempting to use `COUNT(orders.order_id)` instead of `COUNT(DISTINCT orders.order_id)` to count the number of orders. However, since the primary key is `(order_id, menu_id)`, a single order could contain more than one item and therefore appear across multiple rows. Using `DISTINCT` ensures each order is counted once regardless of how many items it contains.
-
 **✅ Result:**
 | total_orders | total_revenue |
 |---|---|
 | 400 | 8661.40 |
 
 **💡 Commentary:**
-Ems Coffee served 400 orders for RM8,661.40 in revenue which is an average order value (AOV) of roughly RM . On its own, it's a one-line figure and we have yet to know whether that revenue is concentrated in a handful of customers or spread evenly which is what the customer segmentation in Q2 and Q5 will unpack. 
+Ems Coffee served 400 orders for RM8,661.40 in revenue which is an average order value (AOV) of roughly RM21.65. On its own, it's a one-line figure and we have yet to know whether that revenue is concentrated in a handful of customers or spread evenly which is what the customer segmentation in Q2 and Q5 will unpack. 
 
 ### 2. Customer Loyalty Segments
 
@@ -162,7 +161,7 @@ ORDER BY pct_of_orders DESC;
 ```
 
 **✅ Result:**
-| visit_frequency | num_customers | pct_of_customers | total_orders | pct_of_orders |
+| visit_frequency | num_of_customers | pct_of_customers | total_orders | pct_of_orders |
 |---|---|---|---|---|
 | regular | 30 | 75.00 | 365 | 91.25 |
 | occasional | 7 | 17.50 | 32 | 8.00 |
@@ -476,7 +475,7 @@ ORDER BY customers.customer_id;
 ```
 
 **✅ Result:**
-(showing first 5 rows)
+(showing first 5 rows of results)
 | customer_id | first_order_date | membership_start_date | days_to_convert | avg_days_to_convert |
 |-------------|-------------------|-------------------------|------------------|-----------------------|
 | 1           | 2025-01-01        | 2025-01-05              | 4                | 39.88                 |
@@ -486,7 +485,7 @@ ORDER BY customers.customer_id;
 | 7           | 2025-01-01        | 2025-02-15              | 45               | 39.88                 |
 
 **💡 Commentary:**
-Conversion time varies a fair bit even in this small sample. Customer 1 joined just 4 days after their first order while customers 4 and 7 both took 45 days over 11 times longer. The overall average across all 24 members (customers who ever joined as members) is 39.88 days which sits close to the higher end of the number of days to convert rather than the middle, so "average" here doesn't mean "typical" in the way it might for a more evenly spread dataset.
+Conversion time varies a fair bit. Customer 1 joined just 4 days after their first order while customers 4 and 7 both took 45 days over 11 times longer. The overall average across all 24 members is 39.88 days which actually sits below what's typical: the single most common outcome is 45 days (12 of the 24 members) and a handful of much faster converters (4-40 days) are what pull the average down below that.
 
 Worth noting: 12 of these 24 members converted in exactly 45 days which traces back to how part of the dataset was generated rather than a genuine behavioural pattern, hence pulling up the average figure. 
 
@@ -577,7 +576,7 @@ ORDER BY customer_id;
 **💡 Commentary:**
 Every single one of these 10 lapsed customers orders less often than they did while active which is a pretty clean result. But the size of the drop varies a lot: customer 29 barely slows down going from 0.98 to 0.70 orders/month (about a 29% drop) while customer 23 falls off significantly from 1.47 down to 0.16 (about 89% drop) - that's close to disappearing as a customer entirely! 😦
 
-### 11. Recency, Frequency, and Monetary (RFM) Customer Segmentation
+### 11. RFM Customer Segmentation
 
 Which customers are most valuable when you weigh how recently, how often, and how much they spend — not spend alone? For each customer, calculate recency (days since their last order), frequency (total orders), and monetary value (total spend), then score each dimension into quartiles using NTILE(4). 
 
@@ -702,22 +701,6 @@ At the other end, 6 customers score 1-1-1. All 10 of the lowest-scoring customer
 The more interesting group sits in between: 4 customers (4, 7, 13, 23) score a 1 on recency despite scoring 3 or 4 on frequency or monetary, meaning they used to be high-spending customers, but haven't ordered in a while. Customer 23 stands out here specifically with a RM384.30 total spend, the highest in the dataset, but hasn't ordered in 153 days. That's a concrete win-back target: not a customer to write off, but one worth a nudge before they're gone for good.
 
 ### 12. Month-over-Month Revenue Growth
-
- Using 2025 order data only, how is revenue trending month to month - accelerating, slowing, or flat? 
- 
- Return month, total revenue, the previous month's revenue, and % change (rounded to 2 decimal places), ordered chronologically by month, using LAG(). 
- 
- *(Note: 2026 data is excluded — it's a single month containing all of the original "walk-in" orders and would show an artificial spike rather than a real trend.)*
-
-```sql
-
-```
-
-**✅ Result:**
-
-**💡 Commentary:**
-
-### 14. Month-over-Month Revenue Growth
 
 Using 2025 order data only, how is revenue trending month to month — accelerating, slowing, or flat? 
 

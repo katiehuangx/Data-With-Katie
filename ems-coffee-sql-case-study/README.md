@@ -1,8 +1,8 @@
-# ☕️ Ems Coffee — SQL Case Study
+# Ems Coffee — SQL Case Study
 
-Ems Coffee SQL case study is built around a small café's customer membership program. Working from three tables — `orders`, `menu`, and `customers` - this project answers 12 business questions covering sales performance, customer behaviour, and whether the membership program is actually worth running.
+A SQL portfolio case study built around a small café's customer membership program. Working from three tables — `orders`, `menu`, and `customers` — this project answers 12 business questions covering sales performance, customer behaviour, and whether the membership program is actually worth running.
 
-**[→ Full questions, SQL solutions, and commentary](./ems-coffee-questions-final.md)**
+**[→ Full questions, SQL solutions, and commentary](./questions-and-solutions.md)**
 
 ## What's covered
 
@@ -44,10 +44,14 @@ Full schema and seed data: [`schema/ems_coffee_schema_updated.sql`](./schema/ems
    ```
    psql -d your_database -f schema/ems_coffee_schema_updated.sql
    ```
-3. Open [`ems-coffee-questions-final.md`](./ems-coffee-questions-final.md) and try each question yourself before checking the provided solution.
+3. Open [`questions-and-solutions.md`](./questions-and-solutions.md) and try each question yourself before checking the provided solution.
+
+## A note on approach
+
+This case study was built with AI assistance for drafting and iteration, but every query was run and verified against a live database, and every result checked for logical correctness (not just "does it run") before being included here. Where I found a data limitation or a genuine caveat worth flagging, it's noted directly in the questions file rather than glossed over.
 
 ## About me
 
-[A line or two about your background — ACCA chartered accountant, prior SQL consulting experience, returning to the data field]
+I'm an ACCA-qualified accountant with prior experience writing SQL questions, solutions, and tutorials as a consultant for DataLemur. After a few years away from the data field, this case study is my way of getting hands-on with SQL again.
 
-[Your LinkedIn / contact link]
+Linkedin [https://www.linkedin.com/in/katiehuangx/]
