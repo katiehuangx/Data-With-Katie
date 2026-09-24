@@ -1,7 +1,7 @@
 # ☕️ Ems Coffee — SQL Case Study
 
 <p align="center">
-  <img src="WhatsApp Image 2026-09-23 at 15.09.18.jpeg" width="400">
+  <img src="https://github.com/user-attachments/assets/08bc9627-750d-4b47-b7fc-4cffbc221fa8" width="400">
   <br>
   <em>My favourite café where I did most of the work on this project.</em>
 </p>
