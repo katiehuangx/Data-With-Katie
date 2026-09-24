@@ -370,10 +370,10 @@ WITH customer_status AS (
   
 SELECT 
     status_at_order,
-	COUNT (DISTINCT customer_id) AS num_of_customers,
+    COUNT (DISTINCT customer_id) AS num_of_customers,
     COUNT(DISTINCT order_id) AS total_orders,
     ROUND(
-		COUNT(DISTINCT order_id)::NUMERIC/COUNT(DISTINCT customer_id),2
+	    COUNT(DISTINCT order_id)::NUMERIC/COUNT(DISTINCT customer_id),2
 		) AS avg_order_per_customer,
     SUM(quantity * price) AS total_revenue,
     ROUND(
@@ -634,7 +634,7 @@ SELECT
     snapshot_date - last_order_date AS recency,
     frequency,
     monetary,
-	NTILE(4) OVER (ORDER BY snapshot_date - last_order_date DESC) AS recency_score,
+    NTILE(4) OVER (ORDER BY snapshot_date - last_order_date DESC) AS recency_score,
     NTILE(4) OVER (ORDER BY frequency ASC) AS frequency_score,
     NTILE(4) OVER (ORDER BY monetary ASC) AS monetary_score
 FROM customer_metrics
@@ -681,9 +681,9 @@ WITH customer_metrics AS (
 	    snapshot_date - last_order_date AS recency,
 	    frequency,
 	    monetary,
-		NTILE(4) OVER (ORDER BY snapshot_date - last_order_date DESC) AS recency_score,
-	    NTILE(4) OVER (ORDER BY frequency ASC) AS frequency_score,
-	    NTILE(4) OVER (ORDER BY monetary ASC) AS monetary_score
+        NTILE(4) OVER (ORDER BY snapshot_date - last_order_date DESC) AS recency_score,
+        NTILE(4) OVER (ORDER BY frequency ASC) AS frequency_score,
+        NTILE(4) OVER (ORDER BY monetary ASC) AS monetary_score
 	FROM customer_metrics
 	CROSS JOIN snapshot_data
 )
@@ -691,7 +691,7 @@ WITH customer_metrics AS (
 SELECT *
 FROM scores
 WHERE 
-	recency_score = 4
+    recency_score = 4
     AND frequency_score = 4
     AND monetary_score = 4
 ORDER BY customer_id;
@@ -742,7 +742,7 @@ SELECT
     total_revenue AS current_mth_revenue,
     LAG(total_revenue) OVER (ORDER BY mth_yr) AS prev_mth_revenue,
     ROUND(
-		100.0 * (total_revenue - prev_mth_revenue)/prev_mth_revenue, 2
+        100.0 * (total_revenue - prev_mth_revenue)/prev_mth_revenue, 2
 		) AS pct_change 
 FROM lag_data
 ORDER BY mth_yr;
