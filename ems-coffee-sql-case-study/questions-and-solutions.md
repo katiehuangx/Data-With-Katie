@@ -17,64 +17,56 @@ Ems Coffee is a small café running a customer membership program. This case stu
 Questions are grouped into two tiers — Core (fundamentals) and Advanced (window functions, CTEs, and more complex date reasoning). See the [README](./README.md) for the full technique breakdown and the approach behind this project.
 
 **‼️ One thing worth saying upfront:** 
+
 The SQL solution for each question is one way to solve it, but it's not the only way. There's usually more than one reasonable solution to the same answer: a different join, a CTE instead of a subquery, a different window function, so if your query looks nothing like mine, but outputs the same result, that's not wrong, it's just a different call. 
 
 Use your own judgement 💡 for how to structure and present your solution, as long as the gist of the result matches.
-
-## How this was built
-
-*(See the [README](./README.md) for more on the approach — Claude helped draft and troubleshoot, but the verification is mine.)*
-
-2 real issues surfaced along the way: a `GROUP BY` granularity bug in Q10 that silently collapsed the results to one row per order instead of one row per customer and a data-generation artifact in Q9 where exactly half of converted members (12 of 24) hit an identical, suspiciously round 45-day conversion time - a flaw in how the practice data was generated, not a real behavioural pattern.
 
 ***
 
 All prices and revenue figures in this dataset are in Malaysian Ringgit (RM).
 
 Definitions used throughout:
-
 - "Orders" = distinct `order_id` count (an order can only ever contain one item; `quantity` captures multiple units of that same item, not multiple different items).
 - "Member" = active membership at the time of a given order (`order_date` between `membership_start_date` and `membership_end_date` or ongoing if `membership_end_date` is NULL).
 
 ## Core Questions
 
-1. [Orders & Revenue Overview](#1-orders--revenue-overview): How busy was the café — how many orders did we serve and how much revenue did we bring in? Return total orders and total revenue.
+1. [Orders & Revenue Overview](#1-orders--revenue-overview): How busy was the café - how many orders did we serve and how much revenue did we bring in? Return total orders and total revenue.
 
-2. [Customer Loyalty Segments](#2-customer-loyalty-segments): Which customers keep coming back? Categorise customers with more than 6 orders as 'regulars', exactly 1 order as 'one-time', and everyone else as 'occasional'. Return customer ID, total orders, and visit frequency category, sorted by highest orders.
+2. [Customer Loyalty Segments](#2-customer-loyalty-segments): Which customers keep coming back? Categorise customers with more than 6 orders as 'regulars', 1 order as 'one-time', and everyone else as 'occasional'. Return customer ID, total orders, and visit frequency category sorted by highest orders.
 
-3. [Popularity vs. Profitability](#3-popularity-vs-profitability): What are customers actually drinking, and which of those drinks are the real money-makers? Return coffee name, total quantity sold, percentage of total volume (rounded to 2 decimal places), total revenue, and percentage of total revenue (rounded to 2 decimal places) — so it's clear whether the most popular item is also the most profitable one.
+3. [Popularity vs. Profitability](#3-popularity-vs-profitability): What are customers actually drinking and which of those drinks are the real money-makers? Return coffee name, total quantity sold, percentage of total volume (rounded to 2 decimal places), total revenue, and percentage of total revenue (rounded to 2 decimal places) so it's clear whether the most popular item is also the most profitable one.
 
-4. [Peak Revenue Days](#4-peak-revenue-days): Are there peak days — which days of the week bring in the most revenue? Return day of the week, number of times that day occurred, total revenue, and average revenue per occurrence (rounded to 2 decimal places), sorted by total revenue descending and limited to the top 5 days.
+4. [Peak Revenue Days](#4-peak-revenue-days): Are there peak days - which days of the week bring in the most revenue? Return day of the week, number of times that day occurred, total revenue, and average revenue per occurrence (rounded to 2 decimal places) sorted by total revenue descending and limited to the top 5 days.
 
-5. [Top Spending Customers](#5-top-spending-customers): Who are our best customers — which 10 customers spend the most overall? Return customer ID, total spent, percentage of total revenue (rounded to 2 decimal places), and spend rank, sorted by total spent descending and limited to the top 10.
+5. [Top Spending Customers](#5-top-spending-customers): Who are our best customers - which 10 customers spend the most overall? Return customer ID, total spent, percentage of total revenue (rounded to 2 decimal places), and spend rank sorted by total spent descending and limited to the top 10.
 
 6. [Membership Status Breakdown](#6-membership-status-breakdown): How many of our customers are currently members, lapsed, or never joined? Return membership status (active member, lapsed member, never joined) and customer count for each.
 
-7. [Member vs. Non-Member Value](#7-member-vs-non-member-value): Are members actually valuable?
+7. [Member vs. Non-Member Value](#7-member-vs-non-member-value): Are members actually valuable? For every order, work out whether that customer was a member or a non-member *at the time of that specific order*, not their current status. The same customer can land in both groups, depending on when each order happened relative to their membership dates.
 
-    For every order, work out whether that customer was a member or a non-member *at the time of that specific order* — not their current status. The same customer can land in both groups, depending on when each order happened relative to their membership dates.
+Return status (member/non-member), number of customers, total orders, average orders per customer (rounded to 2 decimal places), total revenue, and average spend per order (rounded to 2 decimal places).
 
-    Return: status (member/non-member), number of customers, total orders, average orders per customer (rounded to 2 decimal places), total revenue, and average spend per order (rounded to 2 decimal places).
+How to read `membership_start_date` and `membership_end_date` together:
 
-    > **How to read `membership_start_date` and `membership_end_date` together:**
-    >
-    > | membership_start_date | membership_end_date | status |
-    > |------------------------|----------------------|----------------|
-    > | NULL | NULL | never joined |
-    > | has a date | NULL | active member |
-    > | has a date | has a date | lapsed member |
+| membership_start_date | membership_end_date | status |
+|------------------------|----------------------|----------------|
+| NULL | NULL | never joined |
+| has a date | NULL | active member |
+| has a date | has a date | lapsed member |
 
 ## Advanced Questions
 
-8. [Customer's Usual Order](#8-customers-usual-order): Does each customer have a "usual"? Return customer ID, drink name, number of times ordered, and rank — showing all ties (via `DENSE_RANK()`), not just a single top pick — sorted by customer ID, limited to the first 5 customers (note: ties mean some of those 5 customers may contribute more than one row each).
+8. [Customer's Usual Order](#8-customers-usual-order): Does each customer have a "usual"? Return customer ID, drink name, number of times ordered, and rank showing all ties (via `DENSE_RANK()`), not just a single top pick sorted by customer ID, limited to the first 5 customers *(note: ties mean some of those 5 customers may contribute more than one row each)*.
 
-9. [Time to Convert](#9-time-to-convert): How long does it typically take a customer to convert into a member? Return customer ID, first order date, membership start date, days to convert, and the average days-to-convert across all members (rounded to 2 decimal places) — sorted by customer ID, limited to the first 5 customers (the average itself should still reflect all members, not just the 5 shown).
+9. [Time to Convert](#9-time-to-convert): How long does it typically take a customer to convert into a member? Return customer ID, first order date, membership start date, days to convert, and the average days-to-convert across all members (rounded to 2 decimal places) sorted by customer ID and limited to the first 5 customers (the average itself should still reflect all members, not just the 5 shown).
 
-10. [Post-Lapse Drop-Off](#10-post-lapse-drop-off): When a customer's membership lapses, does their ordering drop off afterward? Return customer ID, total orders placed while an active member, orders per month while an active member (rounded to 2 decimal places), total orders placed after lapsing, and orders per month after lapsing (rounded to 2 decimal places), sorted by customer ID.
+10. [Post-Lapse Drop-Off](#10-post-lapse-drop-off): When a customer's membership lapses, does their ordering drop off afterward? Return customer ID, total orders placed while an active member, orders per month while an active member (rounded to 2 decimal places), total orders placed after lapsing, and orders per month after lapsing (rounded to 2 decimal places) sorted by customer ID.
 
 11. [RFM Customer Segmentation](#11-rfm-customer-segmentation): Which customers are most valuable when you weigh how recently, how often, and how much they spend — not spend alone? For each customer, calculate recency (days since their last order), frequency (total orders), and monetary value (total spend), then score each dimension into quartiles using `NTILE(4)`. Return customer ID, recency, frequency, monetary value, and the three quartile scores. *(Note: a higher score is better across all three dimensions — quartile 4 means most recent, most frequent, or highest spend; quartile 1 means the opposite. Recency needs to be scored in the opposite sort direction from frequency and monetary to achieve this, since a smaller day-count is what counts as "better" for recency.)*
 
-12. [Month-over-Month Revenue Growth](#12-month-over-month-revenue-growth): Using 2025 order data only, how is revenue trending month to month — accelerating, slowing, or flat? Return month, total revenue, the previous month's revenue, and % change (rounded to 2 decimal places), ordered chronologically by month, using `LAG()`. *(Note: 2026 data is excluded — it's a single month containing all of the original "walk-in" orders and would show an artificial spike rather than a real trend.)*
+12. [Month-over-Month Revenue Growth](#12-month-over-month-revenue-growth): Using 2025 order data only, how is revenue trending month to month - accelerating, slowing, or flat? Return month, total revenue, the previous month's revenue, and % change (rounded to 2 decimal places) ordered chronologically by month using `LAG()`. *(Note: 2026 data is excluded — it's a single month containing all of the original "walk-in" orders and would show an artificial spike rather than a real trend.)*
 
 ## Case Study Solution
 
@@ -145,7 +137,7 @@ WITH customer_category AS (
         CASE
             WHEN COUNT(DISTINCT order_id) > 6 THEN 'regular'
             WHEN COUNT(DISTINCT order_id) BETWEEN 2 AND 6 THEN 'occasional'
-            ELSE 'one-time' 
+            ELSE 'one-time'
         END AS visit_frequency
     FROM orders
     GROUP BY customer_id
@@ -154,9 +146,13 @@ WITH customer_category AS (
 SELECT 
     visit_frequency,
     COUNT(*) AS num_of_customers,
-    ROUND(100.0 * COUNT(*)/SUM(COUNT(*)) OVER (),2) AS pct_of_customers,
+    ROUND(
+		100.0 * COUNT(*)/SUM(COUNT(*)) OVER (), 2
+		) AS pct_of_customers,
     SUM(total_orders) AS total_orders,
-    ROUND(100.0 * SUM(total_orders)/SUM(SUM(total_orders)) OVER (),2) AS pct_of_orders
+    ROUND(
+		100.0 * SUM(total_orders)/SUM(SUM(total_orders)) OVER (), 2
+		) AS pct_of_orders
 FROM customer_category  
 GROUP BY visit_frequency
 ORDER BY pct_of_orders DESC;
@@ -184,9 +180,13 @@ Return coffee name, total quantity sold, percentage of total volume (rounded to 
 SELECT
     menu.coffee_name,
     SUM(orders.quantity) AS qty_sold,
-    ROUND(100.0 * SUM(orders.quantity)/SUM(SUM(orders.quantity)) OVER (),2) AS pct_of_sold,
+    ROUND(
+		100.0 * SUM(orders.quantity)/SUM(SUM(orders.quantity)) OVER (),2
+		) AS pct_of_sold,
     SUM(orders.quantity*menu.price) AS total_revenue,
-    ROUND(100.0 * SUM(orders.quantity*menu.price)/SUM(SUM(orders.quantity*menu.price)) OVER (),2) AS pct_of_revenue
+    ROUND(
+		100.0 * SUM(orders.quantity*menu.price)/SUM(SUM(orders.quantity*menu.price)) OVER (), 2
+		) AS pct_of_revenue
 FROM orders
 INNER JOIN menu
     ON orders.menu_id = menu.menu_id
@@ -212,7 +212,7 @@ So, among these top five, the ranking by "most sold" and the ranking by "most pr
 
 ### 4. Peak Revenue Days
 
-Are there peak days — which days of the week bring in the most revenue? 
+Are there peak days - which days of the week bring in the most revenue? 
 
 Return day of the week, number of times that day occurred, total revenue, and average revenue per occurrence (rounded to 2 decimal places) sorted by total revenue descending and limited to the top 5 days.
 
@@ -221,7 +221,9 @@ SELECT
     TO_CHAR(orders.order_date, 'Day') AS day_of_week,
     COUNT(DISTINCT orders.order_date) AS num_day_of_week,
     SUM(orders.quantity*menu.price) AS total_revenue,
-    ROUND(SUM(orders.quantity*menu.price)/COUNT(DISTINCT orders.order_date),2) AS avg_revenue_per_day
+    ROUND(
+		SUM(orders.quantity*menu.price)/COUNT(DISTINCT orders.order_date), 2
+		) AS avg_revenue_per_day
 FROM orders
 INNER JOIN menu
     ON orders.menu_id = menu.menu_id
@@ -255,9 +257,10 @@ Return customer ID, total spent, percentage of total revenue (rounded to 2 decim
 ```sql
 SELECT
     orders.customer_id,
-    SUM(orders.quantity*menu.price) AS total_spent,
-    ROUND(100.0*SUM(orders.quantity*menu.price)/
-    SUM(SUM(orders.quantity*menu.price)) OVER (),2) AS pct_of_revenue,
+    SUM(orders.quantity * menu.price) AS total_spent,
+    ROUND(
+		100.0 * SUM(orders.quantity * menu.price)/SUM(SUM(orders.quantity*menu.price)) OVER (), 2
+		) AS pct_of_revenue,
     RANK() OVER (ORDER BY SUM(orders.quantity*menu.price) DESC) AS spend_rank
 FROM orders
 INNER JOIN menu
@@ -354,8 +357,8 @@ WITH customer_status AS (
   		menu.price,
         CASE
         	WHEN order_date BETWEEN membership_start_date AND membership_end_date THEN 'member'
-            WHEN membership_start_date IS NOT NULL AND membership_end_date IS NULL 
-                AND order_date >= membership_start_date THEN 'member'
+            WHEN membership_start_date IS NOT NULL AND membership_end_date IS NULL
+				AND order_date >= membership_start_date THEN 'member'
             ELSE 'non-member'
         END AS status_at_order
     FROM customers
@@ -369,9 +372,13 @@ SELECT
     status_at_order,
 	COUNT (DISTINCT customer_id) AS num_of_customers,
     COUNT(DISTINCT order_id) AS total_orders,
-    ROUND(COUNT(DISTINCT order_id)::NUMERIC/COUNT(DISTINCT customer_id),2) AS avg_order_per_customer,
+    ROUND(
+		COUNT(DISTINCT order_id)::NUMERIC/COUNT(DISTINCT customer_id),2
+		) AS avg_order_per_customer,
     SUM(quantity * price) AS total_revenue,
-    ROUND(SUM(quantity * price)/COUNT(DISTINCT order_id),2) AS avg_revenue_per_order
+    ROUND(
+		SUM(quantity * price)/COUNT(DISTINCT order_id), 2
+		) AS avg_revenue_per_order
 FROM customer_status
 GROUP BY status_at_order;
 ```
@@ -410,9 +417,7 @@ WITH ranked_data AS (
         customer_id,
         coffee_name,
         COUNT(order_id) AS coffee_count,
-        DENSE_RANK() OVER (
-            PARTITION BY customer_id 
-            ORDER BY COUNT(order_id) DESC) AS coffee_rank
+        DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY COUNT(order_id) DESC) AS coffee_rank
     FROM orders
     INNER JOIN menu
         ON orders.menu_id = menu.menu_id
@@ -464,8 +469,10 @@ SELECT
     customers.customer_id,
     MIN(order_date) AS first_order_date,
     membership_start_date,
-    membership_start_date-MIN(order_date) AS days_to_convert,
-	ROUND(AVG(membership_start_date-MIN(order_date)) OVER (),2) AS avg_days_to_convert
+    membership_start_date - MIN(order_date) AS days_to_convert,
+	ROUND(
+		AVG(membership_start_date-MIN(order_date)) OVER (), 2
+		) AS avg_days_to_convert
 FROM orders
 INNER JOIN customers
 	ON orders.customer_id = customers.customer_id
@@ -523,11 +530,14 @@ WITH orders_data AS (
         customers.membership_start_date,
         customers.membership_end_date,
         COUNT(
-            CASE WHEN orders.order_date BETWEEN customers.membership_start_date AND customers.membership_end_date THEN 1 END
-            ) AS active_orders,
+			CASE
+				WHEN orders.order_date BETWEEN customers.membership_start_date
+				AND customers.membership_end_date THEN 1
+				END) AS active_orders,
         COUNT(
-            CASE WHEN orders.order_date > customers.membership_end_date THEN 1 END
-            ) AS lapsed_orders
+			CASE
+				WHEN orders.order_date > customers.membership_end_date THEN 1
+				END) AS lapsed_orders
     FROM orders
     INNER JOIN customers 
         ON orders.customer_id = customers.customer_id
@@ -547,13 +557,13 @@ SELECT
     active_orders,
     ROUND(
         active_orders/
-        NULLIF((membership_end_date - membership_start_date) / 30.0, 0)
-        ,2) AS active_orders_per_month,
+        NULLIF((membership_end_date - membership_start_date) / 30.0, 0), 2
+		) AS active_orders_per_month,
     lapsed_orders,
     ROUND(
         lapsed_orders/
-        NULLIF((snapshot_date - membership_end_date) / 30.0, 0)
-        ,2) AS lapsed_orders_per_month
+        NULLIF((snapshot_date - membership_end_date) / 30.0, 0), 2
+		) AS lapsed_orders_per_month
 FROM orders_data
 CROSS JOIN snapshot_data
 ORDER BY customer_id;
@@ -651,31 +661,31 @@ Let's go one step further and keep only customers who scored 4-4-4 on all custom
 
 ```sql
 WITH customer_metrics AS (
-SELECT 
-	customer_id,
-    MAX(order_date) AS last_order_date,
-    COUNT(DISTINCT order_id) AS frequency,
-    SUM(quantity * price) AS monetary
-FROM orders
-INNER JOIN menu
-    ON orders.menu_id = menu.menu_id
-GROUP BY customer_id
+	SELECT 
+		customer_id,
+	    MAX(order_date) AS last_order_date,
+	    COUNT(DISTINCT order_id) AS frequency,
+	    SUM(quantity * price) AS monetary
+	FROM orders
+	INNER JOIN menu
+	    ON orders.menu_id = menu.menu_id
+	GROUP BY customer_id
 )
 , snapshot_data AS(
-SELECT MAX(order_date) AS snapshot_date
-FROM orders
+	SELECT MAX(order_date) AS snapshot_date
+	FROM orders
 )
 , scores AS (
-SELECT 
-	customer_id,
-    snapshot_date - last_order_date AS recency,
-    frequency,
-    monetary,
-	NTILE(4) OVER (ORDER BY snapshot_date - last_order_date DESC) AS recency_score,
-    NTILE(4) OVER (ORDER BY frequency ASC) AS frequency_score,
-    NTILE(4) OVER (ORDER BY monetary ASC) AS monetary_score
-FROM customer_metrics
-CROSS JOIN snapshot_data
+	SELECT 
+		customer_id,
+	    snapshot_date - last_order_date AS recency,
+	    frequency,
+	    monetary,
+		NTILE(4) OVER (ORDER BY snapshot_date - last_order_date DESC) AS recency_score,
+	    NTILE(4) OVER (ORDER BY frequency ASC) AS frequency_score,
+	    NTILE(4) OVER (ORDER BY monetary ASC) AS monetary_score
+	FROM customer_metrics
+	CROSS JOIN snapshot_data
 )
 
 SELECT *
@@ -732,8 +742,8 @@ SELECT
     total_revenue AS current_mth_revenue,
     LAG(total_revenue) OVER (ORDER BY mth_yr) AS prev_mth_revenue,
     ROUND(
-        100.0 * (total_revenue - prev_mth_revenue)/prev_mth_revenue,2
-        ) AS pct_change 
+		100.0 * (total_revenue - prev_mth_revenue)/prev_mth_revenue, 2
+		) AS pct_change 
 FROM lag_data
 ORDER BY mth_yr;
 ```
