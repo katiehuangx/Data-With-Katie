@@ -32,23 +32,21 @@ Definitions used throughout:
 
 ## Core Questions
 
-1. [Orders & Revenue Overview](#1-orders--revenue-overview): How busy was the café — how many orders did we serve and how much revenue did we bring in? Return total orders and total revenue.
+1. [Orders & Revenue Overview](#1-orders--revenue-overview): How busy was the café - how many orders did we serve and how much revenue did we bring in? Return total orders and total revenue.
 
-2. [Customer Loyalty Segments](#2-customer-loyalty-segments): Which customers keep coming back? Categorise customers with more than 6 orders as 'regulars', exactly 1 order as 'one-time', and everyone else as 'occasional'. Return customer ID, total orders, and visit frequency category, sorted by highest orders.
+2. [Customer Loyalty Segments](#2-customer-loyalty-segments): Which customers keep coming back? Categorise customers with more than 6 orders as 'regulars', 1 order as 'one-time', and everyone else as 'occasional'. Return customer ID, total orders, and visit frequency category sorted by highest orders.
 
-3. [Popularity vs. Profitability](#3-popularity-vs-profitability): What are customers actually drinking, and which of those drinks are the real money-makers? Return coffee name, total quantity sold, percentage of total volume (rounded to 2 decimal places), total revenue, and percentage of total revenue (rounded to 2 decimal places) — so it's clear whether the most popular item is also the most profitable one.
+3. [Popularity vs. Profitability](#3-popularity-vs-profitability): What are customers actually drinking and which of those drinks are the real money-makers? Return coffee name, total quantity sold, percentage of total volume (rounded to 2 decimal places), total revenue, and percentage of total revenue (rounded to 2 decimal places) so it's clear whether the most popular item is also the most profitable one.
 
-4. [Peak Revenue Days](#4-peak-revenue-days): Are there peak days — which days of the week bring in the most revenue? Return day of the week, number of times that day occurred, total revenue, and average revenue per occurrence (rounded to 2 decimal places), sorted by total revenue descending and limited to the top 5 days.
+4. [Peak Revenue Days](#4-peak-revenue-days): Are there peak days - which days of the week bring in the most revenue? Return day of the week, number of times that day occurred, total revenue, and average revenue per occurrence (rounded to 2 decimal places) sorted by total revenue descending and limited to the top 5 days.
 
-5. [Top Spending Customers](#5-top-spending-customers): Who are our best customers — which 10 customers spend the most overall? Return customer ID, total spent, percentage of total revenue (rounded to 2 decimal places), and spend rank, sorted by total spent descending and limited to the top 10.
+5. [Top Spending Customers](#5-top-spending-customers): Who are our best customers - which 10 customers spend the most overall? Return customer ID, total spent, percentage of total revenue (rounded to 2 decimal places), and spend rank sorted by total spent descending and limited to the top 10.
 
 6. [Membership Status Breakdown](#6-membership-status-breakdown): How many of our customers are currently members, lapsed, or never joined? Return membership status (active member, lapsed member, never joined) and customer count for each.
 
-7. [Member vs. Non-Member Value](#7-member-vs-non-member-value): Are members actually valuable?
+7. [Member vs. Non-Member Value](#7-member-vs-non-member-value): Are members actually valuable? For every order, work out whether that customer was a member or a non-member *at the time of that specific order*, not their current status. The same customer can land in both groups, depending on when each order happened relative to their membership dates.
 
-    For every order, work out whether that customer was a member or a non-member *at the time of that specific order* — not their current status. The same customer can land in both groups, depending on when each order happened relative to their membership dates.
-
-    Return: status (member/non-member), number of customers, total orders, average orders per customer (rounded to 2 decimal places), total revenue, and average spend per order (rounded to 2 decimal places).
+Return status (member/non-member), number of customers, total orders, average orders per customer (rounded to 2 decimal places), total revenue, and average spend per order (rounded to 2 decimal places).
 
     > **How to read `membership_start_date` and `membership_end_date` together:**
     >
@@ -60,15 +58,15 @@ Definitions used throughout:
 
 ## Advanced Questions
 
-8. [Customer's Usual Order](#8-customers-usual-order): Does each customer have a "usual"? Return customer ID, drink name, number of times ordered, and rank — showing all ties (via `DENSE_RANK()`), not just a single top pick — sorted by customer ID, limited to the first 5 customers (note: ties mean some of those 5 customers may contribute more than one row each).
+8. [Customer's Usual Order](#8-customers-usual-order): Does each customer have a "usual"? Return customer ID, drink name, number of times ordered, and rank showing all ties (via `DENSE_RANK()`), not just a single top pick sorted by customer ID, limited to the first 5 customers *(note: ties mean some of those 5 customers may contribute more than one row each)*.
 
-9. [Time to Convert](#9-time-to-convert): How long does it typically take a customer to convert into a member? Return customer ID, first order date, membership start date, days to convert, and the average days-to-convert across all members (rounded to 2 decimal places) — sorted by customer ID, limited to the first 5 customers (the average itself should still reflect all members, not just the 5 shown).
+9. [Time to Convert](#9-time-to-convert): How long does it typically take a customer to convert into a member? Return customer ID, first order date, membership start date, days to convert, and the average days-to-convert across all members (rounded to 2 decimal places) sorted by customer ID and limited to the first 5 customers (the average itself should still reflect all members, not just the 5 shown).
 
-10. [Post-Lapse Drop-Off](#10-post-lapse-drop-off): When a customer's membership lapses, does their ordering drop off afterward? Return customer ID, total orders placed while an active member, orders per month while an active member (rounded to 2 decimal places), total orders placed after lapsing, and orders per month after lapsing (rounded to 2 decimal places), sorted by customer ID.
+10. [Post-Lapse Drop-Off](#10-post-lapse-drop-off): When a customer's membership lapses, does their ordering drop off afterward? Return customer ID, total orders placed while an active member, orders per month while an active member (rounded to 2 decimal places), total orders placed after lapsing, and orders per month after lapsing (rounded to 2 decimal places) sorted by customer ID.
 
 11. [RFM Customer Segmentation](#11-rfm-customer-segmentation): Which customers are most valuable when you weigh how recently, how often, and how much they spend — not spend alone? For each customer, calculate recency (days since their last order), frequency (total orders), and monetary value (total spend), then score each dimension into quartiles using `NTILE(4)`. Return customer ID, recency, frequency, monetary value, and the three quartile scores. *(Note: a higher score is better across all three dimensions — quartile 4 means most recent, most frequent, or highest spend; quartile 1 means the opposite. Recency needs to be scored in the opposite sort direction from frequency and monetary to achieve this, since a smaller day-count is what counts as "better" for recency.)*
 
-12. [Month-over-Month Revenue Growth](#12-month-over-month-revenue-growth): Using 2025 order data only, how is revenue trending month to month — accelerating, slowing, or flat? Return month, total revenue, the previous month's revenue, and % change (rounded to 2 decimal places), ordered chronologically by month, using `LAG()`. *(Note: 2026 data is excluded — it's a single month containing all of the original "walk-in" orders and would show an artificial spike rather than a real trend.)*
+12. [Month-over-Month Revenue Growth](#12-month-over-month-revenue-growth): Using 2025 order data only, how is revenue trending month to month - accelerating, slowing, or flat? Return month, total revenue, the previous month's revenue, and % change (rounded to 2 decimal places) ordered chronologically by month using `LAG()`. *(Note: 2026 data is excluded — it's a single month containing all of the original "walk-in" orders and would show an artificial spike rather than a real trend.)*
 
 ## Case Study Solution
 
