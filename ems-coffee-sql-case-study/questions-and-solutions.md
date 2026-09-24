@@ -146,9 +146,13 @@ WITH customer_category AS (
 SELECT 
     visit_frequency,
     COUNT(*) AS num_of_customers,
-    ROUND(100.0 * COUNT(*)/SUM(COUNT(*)) OVER (), 2) AS pct_of_customers,
+    ROUND(
+		100.0 * COUNT(*)/SUM(COUNT(*)) OVER (), 2
+		) AS pct_of_customers,
     SUM(total_orders) AS total_orders,
-    ROUND(100.0 * SUM(total_orders)/SUM(SUM(total_orders)) OVER (), 2) AS pct_of_orders
+    ROUND(
+		100.0 * SUM(total_orders)/SUM(SUM(total_orders)) OVER (), 2
+		) AS pct_of_orders
 FROM customer_category  
 GROUP BY visit_frequency
 ORDER BY pct_of_orders DESC;
@@ -176,9 +180,13 @@ Return coffee name, total quantity sold, percentage of total volume (rounded to 
 SELECT
     menu.coffee_name,
     SUM(orders.quantity) AS qty_sold,
-    ROUND(100.0 * SUM(orders.quantity)/SUM(SUM(orders.quantity)) OVER (),2) AS pct_of_sold,
+    ROUND(
+		100.0 * SUM(orders.quantity)/SUM(SUM(orders.quantity)) OVER (),2
+		) AS pct_of_sold,
     SUM(orders.quantity*menu.price) AS total_revenue,
-    ROUND(100.0 * SUM(orders.quantity*menu.price)/SUM(SUM(orders.quantity*menu.price)) OVER (),2) AS pct_of_revenue
+    ROUND(
+		100.0 * SUM(orders.quantity*menu.price)/SUM(SUM(orders.quantity*menu.price)) OVER (), 2
+		) AS pct_of_revenue
 FROM orders
 INNER JOIN menu
     ON orders.menu_id = menu.menu_id
@@ -213,7 +221,9 @@ SELECT
     TO_CHAR(orders.order_date, 'Day') AS day_of_week,
     COUNT(DISTINCT orders.order_date) AS num_day_of_week,
     SUM(orders.quantity*menu.price) AS total_revenue,
-    ROUND(SUM(orders.quantity*menu.price)/COUNT(DISTINCT orders.order_date), 2) AS avg_revenue_per_day
+    ROUND(
+		SUM(orders.quantity*menu.price)/COUNT(DISTINCT orders.order_date), 2
+		) AS avg_revenue_per_day
 FROM orders
 INNER JOIN menu
     ON orders.menu_id = menu.menu_id
@@ -248,8 +258,9 @@ Return customer ID, total spent, percentage of total revenue (rounded to 2 decim
 SELECT
     orders.customer_id,
     SUM(orders.quantity * menu.price) AS total_spent,
-    ROUND(100.0 * SUM(orders.quantity * menu.price)/
-    	SUM(SUM(orders.quantity*menu.price)) OVER (), 2) AS pct_of_revenue,
+    ROUND(
+		100.0 * SUM(orders.quantity * menu.price)/SUM(SUM(orders.quantity*menu.price)) OVER (), 2
+		) AS pct_of_revenue,
     RANK() OVER (ORDER BY SUM(orders.quantity*menu.price) DESC) AS spend_rank
 FROM orders
 INNER JOIN menu
@@ -346,7 +357,8 @@ WITH customer_status AS (
   		menu.price,
         CASE
         	WHEN order_date BETWEEN membership_start_date AND membership_end_date THEN 'member'
-            WHEN membership_start_date IS NOT NULL AND membership_end_date IS NULL AND order_date >= membership_start_date THEN 'member'
+            WHEN membership_start_date IS NOT NULL AND membership_end_date IS NULL
+				AND order_date >= membership_start_date THEN 'member'
             ELSE 'non-member'
         END AS status_at_order
     FROM customers
@@ -360,9 +372,13 @@ SELECT
     status_at_order,
 	COUNT (DISTINCT customer_id) AS num_of_customers,
     COUNT(DISTINCT order_id) AS total_orders,
-    ROUND(COUNT(DISTINCT order_id)::NUMERIC/COUNT(DISTINCT customer_id),2) AS avg_order_per_customer,
+    ROUND(
+		COUNT(DISTINCT order_id)::NUMERIC/COUNT(DISTINCT customer_id),2
+		) AS avg_order_per_customer,
     SUM(quantity * price) AS total_revenue,
-    ROUND(SUM(quantity * price)/COUNT(DISTINCT order_id),2) AS avg_revenue_per_order
+    ROUND(
+		SUM(quantity * price)/COUNT(DISTINCT order_id), 2
+		) AS avg_revenue_per_order
 FROM customer_status
 GROUP BY status_at_order;
 ```
@@ -454,7 +470,9 @@ SELECT
     MIN(order_date) AS first_order_date,
     membership_start_date,
     membership_start_date - MIN(order_date) AS days_to_convert,
-	ROUND(AVG(membership_start_date-MIN(order_date)) OVER (), 2) AS avg_days_to_convert
+	ROUND(
+		AVG(membership_start_date-MIN(order_date)) OVER (), 2
+		) AS avg_days_to_convert
 FROM orders
 INNER JOIN customers
 	ON orders.customer_id = customers.customer_id
@@ -511,8 +529,15 @@ WITH orders_data AS (
         orders.customer_id,
         customers.membership_start_date,
         customers.membership_end_date,
-        COUNT(CASE WHEN orders.order_date BETWEEN customers.membership_start_date AND customers.membership_end_date THEN 1 END) AS active_orders,
-        COUNT(CASE WHEN orders.order_date > customers.membership_end_date THEN 1 END) AS lapsed_orders
+        COUNT(
+			CASE
+				WHEN orders.order_date BETWEEN customers.membership_start_date
+				AND customers.membership_end_date THEN 1
+				END) AS active_orders,
+        COUNT(
+			CASE
+				WHEN orders.order_date > customers.membership_end_date THEN 1
+				END) AS lapsed_orders
     FROM orders
     INNER JOIN customers 
         ON orders.customer_id = customers.customer_id
@@ -532,13 +557,13 @@ SELECT
     active_orders,
     ROUND(
         active_orders/
-        NULLIF((membership_end_date - membership_start_date) / 30.0, 0)
-        ,2) AS active_orders_per_month,
+        NULLIF((membership_end_date - membership_start_date) / 30.0, 0), 2
+		) AS active_orders_per_month,
     lapsed_orders,
     ROUND(
         lapsed_orders/
-        NULLIF((snapshot_date - membership_end_date) / 30.0, 0)
-        ,2) AS lapsed_orders_per_month
+        NULLIF((snapshot_date - membership_end_date) / 30.0, 0), 2
+		) AS lapsed_orders_per_month
 FROM orders_data
 CROSS JOIN snapshot_data
 ORDER BY customer_id;
@@ -716,7 +741,9 @@ SELECT
 	mth_yr,
     total_revenue AS current_mth_revenue,
     LAG(total_revenue) OVER (ORDER BY mth_yr) AS prev_mth_revenue,
-    ROUND(100.0 * (total_revenue - prev_mth_revenue)/prev_mth_revenue,2) AS pct_change 
+    ROUND(
+		100.0 * (total_revenue - prev_mth_revenue)/prev_mth_revenue, 2
+		) AS pct_change 
 FROM lag_data
 ORDER BY mth_yr;
 ```
