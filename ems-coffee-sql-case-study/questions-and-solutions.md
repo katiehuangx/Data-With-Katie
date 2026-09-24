@@ -728,10 +728,12 @@ WITH revenue_data AS (
 )
 
 SELECT
-	mth_yr,
+    mth_yr,
     total_revenue AS current_mth_revenue,
     LAG(total_revenue) OVER (ORDER BY mth_yr) AS prev_mth_revenue,
-    ROUND(100.0 * (total_revenue - prev_mth_revenue)/prev_mth_revenue,2) AS pct_change 
+    ROUND(
+        100.0 * (total_revenue - prev_mth_revenue)/prev_mth_revenue,2
+        ) AS pct_change 
 FROM lag_data
 ORDER BY mth_yr;
 ```

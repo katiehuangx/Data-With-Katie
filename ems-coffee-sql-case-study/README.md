@@ -1,4 +1,4 @@
-# ☕️ Ems Coffee — SQL Case Study
+# ☕️ Ems Coffee - SQL Case Study
 
 <p align="center">
   <img src="WhatsApp Image 2026-09-23 at 15.09.18.jpeg" width="400">
@@ -6,7 +6,7 @@
   <em>My favourite café where I did most of the work on this project.</em>
 </p>
 
-Ems Coffee is a small café with a membership program — and a pile of transaction data nobody's really dug into. This case study puts it to work: 3 tables (`orders`, `menu`, `customers`) and 12 SQL questions.
+Ems Coffee is a small café with a membership program and a bunch of transaction data nobody's really dug into. This case study puts it to work: 3 tables (`orders`, `menu`, `customers`) and 12 SQL questions.
 
 **[→ Click here for the Questions and SQL solutions](./questions-and-solutions.md)**
 
