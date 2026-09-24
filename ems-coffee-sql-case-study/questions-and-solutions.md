@@ -48,13 +48,13 @@ Definitions used throughout:
 
 Return status (member/non-member), number of customers, total orders, average orders per customer (rounded to 2 decimal places), total revenue, and average spend per order (rounded to 2 decimal places).
 
-    > **How to read `membership_start_date` and `membership_end_date` together:**
-    >
-    > | membership_start_date | membership_end_date | status |
-    > |------------------------|----------------------|----------------|
-    > | NULL | NULL | never joined |
-    > | has a date | NULL | active member |
-    > | has a date | has a date | lapsed member |
+How to read `membership_start_date` and `membership_end_date` together:
+
+| membership_start_date | membership_end_date | status |
+|------------------------|----------------------|----------------|
+| NULL | NULL | never joined |
+| has a date | NULL | active member |
+| has a date | has a date | lapsed member |
 
 ## Advanced Questions
 
