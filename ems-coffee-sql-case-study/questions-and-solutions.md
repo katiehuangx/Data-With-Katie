@@ -1,5 +1,12 @@
 # ☕️ Ems Coffee SQL Case Study
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Core Questions](#core-questions)
+- [Advanced Questions](#advanced-questions)
+- [Case Study Solution](#case-study-solution)
+
 ## Overview
 
 Ems Coffee is a small café running a customer membership program. This case study has 3 tables: 
@@ -7,23 +14,18 @@ Ems Coffee is a small café running a customer membership program. This case stu
 - `menu` (item names and prices)
 - `customers` (who's joined the membership program and when their membership started and ended, if at all). 
 
-The questions are grouped into 3 tiers each building on the last:
-
-- Core (Q1-7) - the fundamentals: aggregate functions (COUNT, SUM, AVG), joins, CASE statements for segmentation, and an introduction to window functions.
-- Advanced (Q8-12) - CTEs, DENSE_RANK() with PARTITION BY, and reasoning about dates relative to a moving window, NTILE() for percentile-based customer segmentation (RFM), and LAG() for period-over-period trend comparisons.
+Questions are grouped into two tiers — Core (fundamentals) and Advanced (window functions, CTEs, and more complex date reasoning). See the [README](./README.md) for the full technique breakdown and the approach behind this project.
 
 **‼️ One thing worth saying upfront:** 
-The SQL shown for each question is one way to solve it, not the only way. There's usually more than one reasonable solution to the same answer - a different join, a CTE instead of a subquery, a different window function, so if your query looks nothing like mine, but outputs the same underlying result, that's not wrong, it's just a different call. 
-
-This case study was built with Claude for drafting and iteration, but every query was run and verified against a live database, and every result checked for logical correctness (not just "does it run") before being included here. Where I found a data limitation or a genuine caveat worth flagging, it's noted directly in the questions file rather than glossed over.
+The SQL solution for each question is one way to solve it, but it's not the only way. There's usually more than one reasonable solution to the same answer: a different join, a CTE instead of a subquery, a different window function, so if your query looks nothing like mine, but outputs the same result, that's not wrong, it's just a different call. 
 
 Use your own judgement 💡 for how to structure and present your solution, as long as the gist of the result matches.
 
 ## How this was built
 
-I used Claude to draft and troubleshoot the SQL, but the analytical judgment and verification is mine. Every query was run against a live PostgreSQL database and checked for correctness, not just accepted because it executed without error.
+*(See the [README](./README.md) for more on the approach — Claude helped draft and troubleshoot, but the verification is mine.)*
 
-That process caught real issues along the way: a `GROUP BY` granularity bug in Q10 that silently collapsed the results to one row per order instead of one row per customer and a data-generation artifact in Q9 where exactly half of converted members (12 of 24) hit an identical, suspiciously round 45-day conversion time - a flaw in how the practice data was generated, not a real behavioural pattern.
+2 real issues surfaced along the way: a `GROUP BY` granularity bug in Q10 that silently collapsed the results to one row per order instead of one row per customer and a data-generation artifact in Q9 where exactly half of converted members (12 of 24) hit an identical, suspiciously round 45-day conversion time - a flaw in how the practice data was generated, not a real behavioural pattern.
 
 ***
 
@@ -486,8 +488,6 @@ ORDER BY customers.customer_id;
 
 **💡 Commentary:**
 Conversion time varies a fair bit. Customer 1 joined just 4 days after their first order while customers 4 and 7 both took 45 days over 11 times longer. The overall average across all 24 members is 39.88 days which actually sits below what's typical: the single most common outcome is 45 days (12 of the 24 members) and a handful of much faster converters (4-40 days) are what pull the average down below that.
-
-Worth noting: 12 of these 24 members converted in exactly 45 days which traces back to how part of the dataset was generated rather than a genuine behavioural pattern, hence pulling up the average figure. 
 
 ### 10. Post-Lapse Drop-Off
 

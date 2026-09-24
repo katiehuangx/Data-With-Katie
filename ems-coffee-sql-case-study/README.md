@@ -6,7 +6,7 @@
   <em>My favourite café where I did most of the work on this project.</em>
 </p>
 
-Ems Coffee is a small café with a membership program with a bunch of transaction data nobody's really dug into. This case study puts it to work: 3 tables (`orders`, `menu`, `customers`), 12 questions and one big underlying one — is the membership program actually worth running, or just something the café happens to offer?
+Ems Coffee is a small café with a membership program — and a pile of transaction data nobody's really dug into. This case study puts it to work: 3 tables (`orders`, `menu`, `customers`) and 12 SQL questions.
 
 **[→ Click here for the Questions and SQL solutions](./questions-and-solutions.md)**
 
@@ -20,7 +20,7 @@ Ems Coffee is a small café with a membership program with a bunch of transactio
 ```mermaid
 erDiagram
     CUSTOMERS ||--o{ ORDERS : places
-    MENU ||--o{ ORDERS : "ordered in"
+    MENU ||--o{ ORDERS : "appears in"
 
     CUSTOMERS {
         int customer_id PK
@@ -41,7 +41,7 @@ erDiagram
     }
 ```
 
-Full schema and seed data: [`schema/ems_coffee_schema.sql`](./schema/ems_coffee_schema.sql)
+Full schema and data: [`schema/ems_coffee_schema.sql`](./schema/ems_coffee_schema.sql)
 
 ## Running it locally
 
@@ -49,7 +49,7 @@ Full schema and seed data: [`schema/ems_coffee_schema.sql`](./schema/ems_coffee_
 2. Run the schema file against it:
 
    ```
-   psql -d your_database -f schema/ems_coffee.sql
+   psql -d your_database -f schema/ems_coffee_schema.sql
    ```
 
 3. Open [`questions-and-solutions.md`](./questions-and-solutions.md) and try each question yourself before checking the provided solution.
