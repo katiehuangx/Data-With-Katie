@@ -137,7 +137,7 @@ WITH customer_category AS (
         CASE
             WHEN COUNT(DISTINCT order_id) > 6 THEN 'regular'
             WHEN COUNT(DISTINCT order_id) BETWEEN 2 AND 6 THEN 'occasional'
-            ELSE 'one-time' 
+            ELSE 'one-time'
         END AS visit_frequency
     FROM orders
     GROUP BY customer_id
@@ -146,9 +146,9 @@ WITH customer_category AS (
 SELECT 
     visit_frequency,
     COUNT(*) AS num_of_customers,
-    ROUND(100.0 * COUNT(*)/SUM(COUNT(*)) OVER (),2) AS pct_of_customers,
+    ROUND(100.0 * COUNT(*)/SUM(COUNT(*)) OVER (), 2) AS pct_of_customers,
     SUM(total_orders) AS total_orders,
-    ROUND(100.0 * SUM(total_orders)/SUM(SUM(total_orders)) OVER (),2) AS pct_of_orders
+    ROUND(100.0 * SUM(total_orders)/SUM(SUM(total_orders)) OVER (), 2) AS pct_of_orders
 FROM customer_category  
 GROUP BY visit_frequency
 ORDER BY pct_of_orders DESC;
@@ -204,7 +204,7 @@ So, among these top five, the ranking by "most sold" and the ranking by "most pr
 
 ### 4. Peak Revenue Days
 
-Are there peak days — which days of the week bring in the most revenue? 
+Are there peak days - which days of the week bring in the most revenue? 
 
 Return day of the week, number of times that day occurred, total revenue, and average revenue per occurrence (rounded to 2 decimal places) sorted by total revenue descending and limited to the top 5 days.
 
@@ -213,7 +213,7 @@ SELECT
     TO_CHAR(orders.order_date, 'Day') AS day_of_week,
     COUNT(DISTINCT orders.order_date) AS num_day_of_week,
     SUM(orders.quantity*menu.price) AS total_revenue,
-    ROUND(SUM(orders.quantity*menu.price)/COUNT(DISTINCT orders.order_date),2) AS avg_revenue_per_day
+    ROUND(SUM(orders.quantity*menu.price)/COUNT(DISTINCT orders.order_date), 2) AS avg_revenue_per_day
 FROM orders
 INNER JOIN menu
     ON orders.menu_id = menu.menu_id
@@ -247,9 +247,9 @@ Return customer ID, total spent, percentage of total revenue (rounded to 2 decim
 ```sql
 SELECT
     orders.customer_id,
-    SUM(orders.quantity*menu.price) AS total_spent,
-    ROUND(100.0*SUM(orders.quantity*menu.price)/
-    SUM(SUM(orders.quantity*menu.price)) OVER (),2) AS pct_of_revenue,
+    SUM(orders.quantity * menu.price) AS total_spent,
+    ROUND(100.0 * SUM(orders.quantity * menu.price)/
+    	SUM(SUM(orders.quantity*menu.price)) OVER (), 2) AS pct_of_revenue,
     RANK() OVER (ORDER BY SUM(orders.quantity*menu.price) DESC) AS spend_rank
 FROM orders
 INNER JOIN menu
@@ -346,8 +346,7 @@ WITH customer_status AS (
   		menu.price,
         CASE
         	WHEN order_date BETWEEN membership_start_date AND membership_end_date THEN 'member'
-            WHEN membership_start_date IS NOT NULL AND membership_end_date IS NULL 
-                AND order_date >= membership_start_date THEN 'member'
+            WHEN membership_start_date IS NOT NULL AND membership_end_date IS NULL AND order_date >= membership_start_date THEN 'member'
             ELSE 'non-member'
         END AS status_at_order
     FROM customers
@@ -402,9 +401,7 @@ WITH ranked_data AS (
         customer_id,
         coffee_name,
         COUNT(order_id) AS coffee_count,
-        DENSE_RANK() OVER (
-            PARTITION BY customer_id 
-            ORDER BY COUNT(order_id) DESC) AS coffee_rank
+        DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY COUNT(order_id) DESC) AS coffee_rank
     FROM orders
     INNER JOIN menu
         ON orders.menu_id = menu.menu_id
@@ -456,8 +453,8 @@ SELECT
     customers.customer_id,
     MIN(order_date) AS first_order_date,
     membership_start_date,
-    membership_start_date-MIN(order_date) AS days_to_convert,
-	ROUND(AVG(membership_start_date-MIN(order_date)) OVER (),2) AS avg_days_to_convert
+    membership_start_date - MIN(order_date) AS days_to_convert,
+	ROUND(AVG(membership_start_date-MIN(order_date)) OVER (), 2) AS avg_days_to_convert
 FROM orders
 INNER JOIN customers
 	ON orders.customer_id = customers.customer_id
@@ -514,12 +511,8 @@ WITH orders_data AS (
         orders.customer_id,
         customers.membership_start_date,
         customers.membership_end_date,
-        COUNT(
-            CASE WHEN orders.order_date BETWEEN customers.membership_start_date AND customers.membership_end_date THEN 1 END
-            ) AS active_orders,
-        COUNT(
-            CASE WHEN orders.order_date > customers.membership_end_date THEN 1 END
-            ) AS lapsed_orders
+        COUNT(CASE WHEN orders.order_date BETWEEN customers.membership_start_date AND customers.membership_end_date THEN 1 END) AS active_orders,
+        COUNT(CASE WHEN orders.order_date > customers.membership_end_date THEN 1 END) AS lapsed_orders
     FROM orders
     INNER JOIN customers 
         ON orders.customer_id = customers.customer_id
@@ -643,31 +636,31 @@ Let's go one step further and keep only customers who scored 4-4-4 on all custom
 
 ```sql
 WITH customer_metrics AS (
-SELECT 
-	customer_id,
-    MAX(order_date) AS last_order_date,
-    COUNT(DISTINCT order_id) AS frequency,
-    SUM(quantity * price) AS monetary
-FROM orders
-INNER JOIN menu
-    ON orders.menu_id = menu.menu_id
-GROUP BY customer_id
+	SELECT 
+		customer_id,
+	    MAX(order_date) AS last_order_date,
+	    COUNT(DISTINCT order_id) AS frequency,
+	    SUM(quantity * price) AS monetary
+	FROM orders
+	INNER JOIN menu
+	    ON orders.menu_id = menu.menu_id
+	GROUP BY customer_id
 )
 , snapshot_data AS(
-SELECT MAX(order_date) AS snapshot_date
-FROM orders
+	SELECT MAX(order_date) AS snapshot_date
+	FROM orders
 )
 , scores AS (
-SELECT 
-	customer_id,
-    snapshot_date - last_order_date AS recency,
-    frequency,
-    monetary,
-	NTILE(4) OVER (ORDER BY snapshot_date - last_order_date DESC) AS recency_score,
-    NTILE(4) OVER (ORDER BY frequency ASC) AS frequency_score,
-    NTILE(4) OVER (ORDER BY monetary ASC) AS monetary_score
-FROM customer_metrics
-CROSS JOIN snapshot_data
+	SELECT 
+		customer_id,
+	    snapshot_date - last_order_date AS recency,
+	    frequency,
+	    monetary,
+		NTILE(4) OVER (ORDER BY snapshot_date - last_order_date DESC) AS recency_score,
+	    NTILE(4) OVER (ORDER BY frequency ASC) AS frequency_score,
+	    NTILE(4) OVER (ORDER BY monetary ASC) AS monetary_score
+	FROM customer_metrics
+	CROSS JOIN snapshot_data
 )
 
 SELECT *
