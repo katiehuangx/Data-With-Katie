@@ -10,6 +10,13 @@ Ems Coffee is a small café with a membership program — and a pile of transact
 
 **[→ Click here for the Questions and SQL solutions](./questions-and-solutions.md)**
 
+## 📊 Key Findings
+
+- **✅ Membership pays off** - Members order 75% more often per person (8.54 vs. 4.88 orders/customer) and spend 45% more per order (RM25.50 vs. RM17.61) than non-members. Both positive effects. 
+- **✅ Popular ≠ Profitable** - Matcha Latte outsells Mocha by volume (75 vs. 74 units), a small margin, but Mocha still takes the top revenue spot (12.73% vs. 12.04%) because of pricing.
+- **✅ The business runs on regulars** - The 75% of customers classed as "regulars" generate 91.25% of all orders. One-time customers barely register at 0.75%.
+- **✅ Lapsing has a real cost** - Every lapsed member ordered less often afterward with drop-offs ranging from ~29% to as much as ~89% depending on the customer.
+
 ## 📝 What's covered
 
 - **Core (Q1-7)** — aggregate functions, joins, `CASE`-based segmentation, and an introduction to window functions
@@ -52,7 +59,15 @@ Full schema and data: [`schema/ems_coffee_schema.sql`](./schema/ems_coffee_schem
    psql -d your_database -f schema/ems_coffee_schema.sql
    ```
 
-3. Open [`questions-and-solutions.md`](./questions-and-solutions.md) and try each question yourself before checking the provided solution.
+3. Connect and set the schema:
+   ```
+   psql -d your_database
+   ```
+   ```sql
+   SET search_path TO ems_coffee;
+   ```
+
+4. Open [`questions-and-solutions.md`](./questions-and-solutions.md) and try each question yourself before checking the provided solution.
 
 ## ‼️ A Note on Approach
 
