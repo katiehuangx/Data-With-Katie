@@ -1,11 +1,14 @@
 # ☕️ Ems Coffee — SQL Case Study
 
-![My favourite cafe where I worked on this project most of the time.](<WhatsApp Image 2026-09-23 at 15.09.18.jpeg>)
-
+<p align="center">
+  <img src="WhatsApp Image 2026-09-23 at 15.09.18.jpeg" width="400">
+  <br>
+  <em>My favourite café where I did most of the work on this project.</em>
+</p>
 
 Ems Coffee is a small café with a membership program with a bunch of transaction data nobody's really dug into. This case study puts it to work: 3 tables (`orders`, `menu`, `customers`), 12 questions and one big underlying one — is the membership program actually worth running, or just something the café happens to offer?
 
-**[→ Full questions, SQL solutions, and commentary](./questions-and-solutions.md)**
+**[→ Click here for the Questions and SQL solutions](./questions-and-solutions.md)**
 
 ## 📝 What's covered
 
