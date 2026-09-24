@@ -17,22 +17,16 @@ Ems Coffee is a small café running a customer membership program. This case stu
 Questions are grouped into two tiers — Core (fundamentals) and Advanced (window functions, CTEs, and more complex date reasoning). See the [README](./README.md) for the full technique breakdown and the approach behind this project.
 
 **‼️ One thing worth saying upfront:** 
+
 The SQL solution for each question is one way to solve it, but it's not the only way. There's usually more than one reasonable solution to the same answer: a different join, a CTE instead of a subquery, a different window function, so if your query looks nothing like mine, but outputs the same result, that's not wrong, it's just a different call. 
 
 Use your own judgement 💡 for how to structure and present your solution, as long as the gist of the result matches.
-
-## How this was built
-
-*(See the [README](./README.md) for more on the approach — Claude helped draft and troubleshoot, but the verification is mine.)*
-
-2 real issues surfaced along the way: a `GROUP BY` granularity bug in Q10 that silently collapsed the results to one row per order instead of one row per customer and a data-generation artifact in Q9 where exactly half of converted members (12 of 24) hit an identical, suspiciously round 45-day conversion time - a flaw in how the practice data was generated, not a real behavioural pattern.
 
 ***
 
 All prices and revenue figures in this dataset are in Malaysian Ringgit (RM).
 
 Definitions used throughout:
-
 - "Orders" = distinct `order_id` count (an order can only ever contain one item; `quantity` captures multiple units of that same item, not multiple different items).
 - "Member" = active membership at the time of a given order (`order_date` between `membership_start_date` and `membership_end_date` or ongoing if `membership_end_date` is NULL).
 
