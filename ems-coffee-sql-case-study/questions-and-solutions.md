@@ -19,7 +19,7 @@ This case study was built with Claude for drafting and iteration, but every quer
 
 Use your own judgement 💡 for how to structure and present your solution, as long as the gist of the result matches.
 
-## 🔧 How this was built
+## How this was built
 
 I used Claude to draft and troubleshoot the SQL, but the analytical judgment and verification is mine. Every query was run against a live PostgreSQL database and checked for correctness, not just accepted because it executed without error.
 
