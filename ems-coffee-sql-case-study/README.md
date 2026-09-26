@@ -3,12 +3,14 @@
 <p align="center">
   <img src="https://github.com/user-attachments/assets/08bc9627-750d-4b47-b7fc-4cffbc221fa8" width="400">
   <br>
-  <em>My favourite café where I did most of the work on this project.</em>
+  <em>My favourite neighbourhood café where I did most of the work on this project.</em>
 </p>
 
 Ems Coffee is a small café with a membership program and a bunch of transaction data nobody's really dug into. This case study puts it to work: 3 tables (`orders`, `menu`, `customers`) and 12 SQL questions.
 
-**[→ Click here for the Questions and SQL solutions](./questions-and-solutions.md)**
+Full write-up and individual queries are available below:
+- 📄 [Questions & SQL solutions](./questions-and-solutions.md) - the full write-up with commentary
+- 📁 [Individual `.sql` files](./sql) - each solution as a standalone file
 
 ## 📊 Key Findings
 
@@ -50,7 +52,7 @@ erDiagram
 
 Full schema and data: [`schema/ems_coffee_schema.sql`](./schema/ems_coffee_schema.sql)
 
-## Running it locally
+## 👩🏻‍💻 Running it locally
 
 1. Create a PostgreSQL database.
 2. Run the schema file against it:
