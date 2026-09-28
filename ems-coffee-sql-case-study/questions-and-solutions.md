@@ -3,8 +3,7 @@
 ## Table of Contents
 
 - [Overview](#overview)
-- [Core Questions](#core-questions)
-- [Advanced Questions](#advanced-questions)
+- [Case Study Questions](#case-study-questions)
 - [Case Study Solution](#case-study-solution)
 
 ## Overview
@@ -30,7 +29,9 @@ Definitions used throughout:
 - "Orders" = distinct `order_id` count (an order can only ever contain one item; `quantity` captures multiple units of that same item, not multiple different items).
 - "Member" = active membership at the time of a given order (`order_date` between `membership_start_date` and `membership_end_date` or ongoing if `membership_end_date` is NULL).
 
-## Core Questions
+## Case Study Questions
+
+### Core Questions
 
 1. [Orders & Revenue Overview](#1-orders--revenue-overview): How busy was the café - how many orders did we serve and how much revenue did we bring in? Return total orders and total revenue.
 
@@ -56,7 +57,7 @@ How to read `membership_start_date` and `membership_end_date` together:
 | has a date | NULL | active member |
 | has a date | has a date | lapsed member |
 
-## Advanced Questions
+### Advanced Questions
 
 8. [Customer's Usual Order](#8-customers-usual-order): Does each customer have a "usual"? Return customer ID, drink name, number of times ordered, and rank showing all ties (via `DENSE_RANK()`), not just a single top pick sorted by customer ID, limited to the first 5 customers *(note: ties mean some of those 5 customers may contribute more than one row each)*.
 
@@ -69,8 +70,6 @@ How to read `membership_start_date` and `membership_end_date` together:
 12. [Month-over-Month Revenue Growth](#12-month-over-month-revenue-growth): Using 2025 order data only, how is revenue trending month to month - accelerating, slowing, or flat? Return month, total revenue, the previous month's revenue, and % change (rounded to 2 decimal places) ordered chronologically by month using `LAG()`. *(Note: 2026 data is excluded — it's a single month containing all of the original "walk-in" orders and would show an artificial spike rather than a real trend.)*
 
 ## Case Study Solution
-
-## Core Questions 
 
 ### 1. Orders & Revenue Overview
 
@@ -402,8 +401,6 @@ In accounting terms, this is essentially a volume-and-rate decomposition — the
 - Non-members: 40 customers × 4.88 orders/customer × RM17.61/order ≈ RM3,437 (actual: RM3,433.80)
 
 To sum up: members visit more often *and* spend more each time. That combination is a stronger, more durable form of value than either effect alone would be.
-
-## Advanced Questions
 
 ### 8. Customer's Usual Order
 

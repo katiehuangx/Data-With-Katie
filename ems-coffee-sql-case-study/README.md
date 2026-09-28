@@ -77,6 +77,6 @@ This case study was built with Claude for drafting and iteration because let's b
 
 ## 🙋🏻‍♀️ About me
 
-Hi there! I'm Katie, an ACCA-qualified accountant with prior experience writing SQL questions, solutions, and tutorials as a consultant for DataLemur. After a few years away from the data field, this case study is my way of getting hands-on with SQL again.
+Hi there! I'm Katie, an ACCA-qualified accountant with prior experience writing SQL questions, solutions, and tutorials as a SQL consultant for DataLemur. After a few years away from the data field, this case study is my way of getting hands-on with SQL again.
 
-Drop me a message here on Linkedin: [https://www.linkedin.com/in/katiehuangx/](https://www.linkedin.com/in/katiehuangx/)
+Drop me a message on Linkedin: [https://www.linkedin.com/in/katiehuangx/](https://www.linkedin.com/in/katiehuangx/)
