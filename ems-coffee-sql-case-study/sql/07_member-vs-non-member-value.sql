@@ -24,8 +24,11 @@ SELECT
     status_at_order,
 	COUNT (DISTINCT customer_id) AS num_of_customers,
     COUNT(DISTINCT order_id) AS total_orders,
-    ROUND(COUNT(DISTINCT order_id)::NUMERIC/COUNT(DISTINCT customer_id),2) AS avg_order_per_customer,
+    ROUND(
+        COUNT(DISTINCT order_id)::NUMERIC/COUNT(DISTINCT customer_id),2
+    ) AS avg_order_per_customer,
     SUM(quantity * price) AS total_revenue,
-    ROUND(SUM(quantity * price)/COUNT(DISTINCT order_id),2) AS avg_revenue_per_order
+    ROUND(
+        SUM(quantity * price)/COUNT(DISTINCT order_id),2) AS avg_revenue_per_order
 FROM customer_status
 GROUP BY status_at_order;

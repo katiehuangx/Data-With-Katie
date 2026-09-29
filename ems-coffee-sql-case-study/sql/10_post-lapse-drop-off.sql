@@ -6,7 +6,8 @@ WITH orders_data AS (
         customers.membership_start_date,
         customers.membership_end_date,
         COUNT(
-            CASE WHEN orders.order_date BETWEEN customers.membership_start_date AND customers.membership_end_date THEN 1 END
+            CASE WHEN orders.order_date BETWEEN customers.membership_start_date 
+            AND customers.membership_end_date THEN 1 END
             ) AS active_orders,
         COUNT(
             CASE WHEN orders.order_date > customers.membership_end_date THEN 1 END

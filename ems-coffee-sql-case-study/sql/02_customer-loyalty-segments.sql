@@ -30,9 +30,13 @@ WITH customer_category AS (
 SELECT 
     visit_frequency,
     COUNT(*) AS num_of_customers,
-    ROUND(100.0 * COUNT(*)/SUM(COUNT(*)) OVER (),2) AS pct_of_customers,
+    ROUND(
+        100.0 * COUNT(*)/SUM(COUNT(*)) OVER (),2
+    ) AS pct_of_customers,
     SUM(total_orders) AS total_orders,
-    ROUND(100.0 * SUM(total_orders)/SUM(SUM(total_orders)) OVER (),2) AS pct_of_orders
+    ROUND(
+        100.0 * SUM(total_orders)/SUM(SUM(total_orders)) OVER (),2
+    ) AS pct_of_orders
 FROM customer_category  
 GROUP BY visit_frequency
 ORDER BY pct_of_orders DESC;
