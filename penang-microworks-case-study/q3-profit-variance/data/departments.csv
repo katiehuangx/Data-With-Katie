@@ -1,0 +1,5 @@
+department_id,cost_center_code,department_name
+1,CC100,Engineering
+2,CC200,Operations
+3,CC300,Sales & Marketing
+4,CC400,G&A

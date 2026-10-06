@@ -1,0 +1,7 @@
+product_id,product_code,product_name,product_family
+1,SEN-100,Temperature sensor module,Sensor modules
+2,SEN-200,Pressure sensor module,Sensor modules
+3,PWR-100,DC-DC converter module,Power modules
+4,PWR-200,Battery management module,Power modules
+5,CON-100,Wi-Fi/Bluetooth board,Connectivity boards
+6,CON-200,Industrial Ethernet board,Connectivity boards

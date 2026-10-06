@@ -1,0 +1,13 @@
+account_id,account_code,account_name,account_type,fs_line,fs_sort_order
+1,4000,Product sales,Revenue,Revenue,10
+2,4100,Sales returns and allowances,Revenue,Revenue,10
+3,5000,Direct materials,COGS,Cost of sales,20
+4,5100,Direct labour,COGS,Cost of sales,20
+5,5200,Manufacturing overhead,COGS,Cost of sales,20
+6,6000,Salaries and wages,Opex,Staff costs,40
+7,6100,"EPF, SOCSO and EIS contributions",Opex,Staff costs,40
+8,6200,Rent and utilities,Opex,Facilities,50
+9,6300,Depreciation,Opex,Depreciation,60
+10,6400,Travel,Opex,Other operating expenses,70
+11,6500,Professional fees,Opex,Other operating expenses,70
+12,6600,Marketing,Opex,Other operating expenses,70
