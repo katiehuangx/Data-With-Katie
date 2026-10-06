@@ -78,6 +78,9 @@ erDiagram
         int product_id FK
         int actual_units
         decimal actual_revenue
+        int budget_units
+        decimal budget_revenue
+    }
 
 
 
