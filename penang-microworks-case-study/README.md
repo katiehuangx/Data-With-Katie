@@ -42,6 +42,63 @@ Run these from inside this folder, since the load script uses relative paths.
 | gl_budget | One row per budget line | Jan–Dec; same shape as gl_actuals |
 | sales_volume | One row per product per month | Units and revenue for the PVM bridge; actuals NULL for Oct–Dec |
 
+## Schema
+
+```mermaid
+erDiagram
+    ACCOUNTS ||--o{ GL_ACTUALS : "posted to"
+    ACCOUNTS ||--o{ GL_BUDGET : "budgeted on"
+    DEPARTMENTS ||--o{ GL_ACTUALS : "charged to"
+    DEPARTMENTS ||--o{ GL_BUDGET : "budgeted for"
+    PRODUCTS ||--o{ GL_ACTUALS : "sold or made"
+    PRODUCTS ||--o{ GL_BUDGET : "planned for"
+    PRODUCTS ||--o{ SALES_VOLUME : "sold as"
+
+    ACCOUNTS {
+        int account_id PK
+        string account_code
+        string account_name
+        string account_type
+        string fs_line
+        int fs_sort_order
+    }
+    DEPARTMENTS {
+        int department_id PK
+        string cost_center_code
+        string department_name
+    }
+    PRODUCTS {
+        int product_id PK
+        string product_code
+        string product_name
+        string product_family
+    }
+    GL_ACTUALS {
+        int line_id
+        date month
+        int account_id FK
+        int department_id FK
+        int product_id FK
+        decimal amount
+    }
+    GL_BUDGET {
+        int line_id
+        date month
+        int account_id FK
+        int department_id FK
+        int product_id FK
+        decimal amount
+    }
+    SALES_VOLUME {
+        date month
+        int product_id FK
+        int actual_units
+        decimal actual_revenue
+        int budget_units
+        decimal budget_revenue
+    }
+```
+
 ## Data quality
 
 The raw GL tables have no keys on purpose, like a real ERP extract. Run the data quality checks before any analysis.
