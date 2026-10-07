@@ -1,7 +1,7 @@
 -- Penang Microworks Sdn Bhd: case study 1 tables (PostgreSQL)
 -- Run: psql penang_microworks -f sql/00_create_tables.sql
 
-DROP TABLE IF EXISTS gl_actuals, gl_budget, sales_volume, accounts, departments, products;
+DROP TABLE IF EXISTS gl_actuals, gl_budget, sales_volume, accounts, departments, products CASCADE;  -- CASCADE also drops the views built on them
 
 -- Master data (clean, so these get primary keys)
 CREATE TABLE accounts (
@@ -27,7 +27,7 @@ CREATE TABLE products (
 );
 
 -- Raw GL extracts: no primary or foreign keys ON PURPOSE.
--- Real ERP extracts arrive like this; the data quality checks find the problems.
+-- Real Oracle GL extracts arrive like this; the data quality checks find the problems.
 -- Sign convention: debits positive, credits negative (revenue is negative).
 CREATE TABLE gl_actuals (
     line_id        INT,
