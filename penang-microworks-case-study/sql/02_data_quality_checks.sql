@@ -3,7 +3,7 @@
 -- Run: psql penang_microworks -f sql/02_data_quality_checks.sql
 --
 -- Golden rule: never silently drop bad rows. Each problem is either
---   (a) quarantined in gl_exceptions with a reason, or
+--   (a) put on hold in gl_exceptions with a reason, or
 --   (b) kept and labelled (e.g. "Unassigned", "Unmapped") so totals still tie.
 -- As-of month for this analysis: September 2026.
 -- =====================================================================
@@ -24,7 +24,7 @@ WHERE (a.account_type = 'Opex' AND g.department_id IS NULL)
 -- ---------------------------------------------------------------------
 -- DQ2. Future date
 -- Anything after the as-of month can't be an actual yet.
--- Treatment: quarantine and flag for review (often a mis-keyed date).
+-- Treatment: put on hold and flag for review (often a mis-keyed date).
 -- ---------------------------------------------------------------------
 SELECT *
 FROM gl_actuals
@@ -34,7 +34,8 @@ WHERE month > DATE '2026-09-01';
 -- ---------------------------------------------------------------------
 -- DQ3. Same record twice
 -- line_id should be unique. Duplicates double-count the amount.
--- Treatment: keep the first copy, quarantine the rest.
+-- Treatment: confirm with accounting, then reverse the extra copy with a
+-- reversal entry (ADJ3 in adjustments.sql). The line stays in the GL.
 -- ---------------------------------------------------------------------
 SELECT line_id, COUNT(*) AS copies, MIN(amount) AS amount
 FROM gl_actuals
@@ -45,7 +46,7 @@ HAVING COUNT(*) > 1;
 -- ---------------------------------------------------------------------
 -- DQ4. Mandatory field missing
 -- A line with no line_id, month, account or amount can't go on the P&L.
--- Treatment: quarantine.
+-- Treatment: put on hold.
 -- ---------------------------------------------------------------------
 SELECT *
 FROM gl_actuals
@@ -107,6 +108,7 @@ ORDER BY month, account_code;
 -- ---------------------------------------------------------------------
 -- DQ7. Reconciliation: GL revenue vs the sales subledger
 -- Two sources that should agree. A gap means one of them has a problem.
+-- Expect a September gap here, explained by DQ3; it ties after ADJ3.
 -- ---------------------------------------------------------------------
 WITH gl AS (
     SELECT month, -SUM(amount) AS gl_revenue
@@ -129,8 +131,10 @@ WHERE gl.gl_revenue IS DISTINCT FROM sv.sales_revenue;
 
 
 -- =====================================================================
--- Quarantine and clean views
+-- On-hold (exceptions) and clean views
 -- Every gl_actuals row lands in exactly one of the two views.
+-- Duplicates aren't put on hold here: they're corrected by a reversal
+-- entry in adjustments.sql, the way accounting would fix them in Oracle.
 -- =====================================================================
 CREATE OR REPLACE VIEW gl_actuals_flagged AS
 SELECT g.*,
@@ -138,8 +142,6 @@ SELECT g.*,
            WHEN g.line_id IS NULL OR g.month IS NULL
              OR g.account_id IS NULL OR g.amount IS NULL      THEN 'Missing mandatory field'
            WHEN g.month > DATE '2026-09-01'                   THEN 'Future-dated'
-           WHEN ROW_NUMBER() OVER (PARTITION BY g.line_id
-                                   ORDER BY g.line_id) > 1    THEN 'Duplicate'
        END AS exception_reason
 FROM gl_actuals AS g;
 
@@ -158,21 +160,21 @@ WHERE exception_reason IS NULL;
 -- =====================================================================
 WITH checks AS (
     SELECT 'DQ1 NULL department or product' AS check_name,
-           COUNT(*) AS rows_found, 'Kept, shown as Unassigned' AS treatment
+           COUNT(*) AS rows_found, 'Reclassed to S&M (ADJ1)' AS treatment
     FROM gl_actuals g JOIN accounts a ON a.account_id = g.account_id
     WHERE (a.account_type = 'Opex' AND g.department_id IS NULL)
        OR (a.account_type IN ('Revenue', 'COGS') AND g.product_id IS NULL)
     UNION ALL
-    SELECT 'DQ2 Future-dated', COUNT(*), 'Quarantined'
+    SELECT 'DQ2 Future-dated', COUNT(*), 'On hold'
     FROM gl_exceptions WHERE exception_reason = 'Future-dated'
     UNION ALL
-    SELECT 'DQ3 Duplicate copies', COUNT(*), 'Extra copies quarantined'
-    FROM gl_exceptions WHERE exception_reason = 'Duplicate'
+    SELECT 'DQ3 Duplicated line_id', COUNT(*), 'Extra copy reversed (ADJ3)'
+    FROM (SELECT line_id FROM gl_actuals GROUP BY line_id HAVING COUNT(*) > 1) AS d
     UNION ALL
-    SELECT 'DQ4 Missing mandatory field', COUNT(*), 'Quarantined'
+    SELECT 'DQ4 Missing mandatory field', COUNT(*), 'On hold'
     FROM gl_exceptions WHERE exception_reason = 'Missing mandatory field'
     UNION ALL
-    SELECT 'DQ5 Unmapped account', COUNT(*), 'Kept, shown as Unmapped'
+    SELECT 'DQ5 Unmapped account', COUNT(*), 'Mapped to 6700 (ADJ2)'
     FROM gl_actuals g LEFT JOIN accounts a ON a.account_id = g.account_id
     WHERE g.account_id IS NOT NULL AND a.account_id IS NULL
 )

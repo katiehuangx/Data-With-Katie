@@ -32,6 +32,18 @@ INSERT INTO gl_actuals (line_id, month, account_id, department_id, product_id, a
     (9001, DATE '2026-08-01', 10, 3,    NULL,  26678.86),   -- Dr Travel, Sales & Marketing
     (9002, DATE '2026-08-01', 10, NULL, NULL, -26678.86);   -- Cr Travel, Unassigned
 
+-- ---------------------------------------------------------------------
+-- ADJ3 (DQ3): reverse the duplicate September revenue line
+-- Line 601 (CON-200 product sales) was loaded twice when the upload was
+-- re-run. Confirmed with accounting. The original credit was -290,737.44,
+-- so the reversal is an equal and opposite debit.
+-- In practice: accounting would reverse the duplicate journal in Oracle.
+-- ---------------------------------------------------------------------
+
+INSERT INTO gl_actuals (line_id, month, account_id, department_id, product_id, amount) VALUES
+    (9003, DATE '2026-09-01', 1, NULL, 6, 290737.44);   -- Dr Product sales, reverses duplicate of line 601
+
+
 
 -- ---------------------------------------------------------------------
 -- ADJ2 (DQ5): add account 99 to the chart of accounts
