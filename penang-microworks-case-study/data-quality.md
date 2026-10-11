@@ -53,11 +53,12 @@ The double entry with original entry:
 
 556 is the original entry, 9001 the debit to Sales & Marketing, and 9002 the credit out of Unassigned. 
 
-To check 
+To check:
 ```sql
-SELECT SUM(amount) AS journal_balance
+SELECT department_id, SUM(amount) AS amount
 FROM gl_actuals
-WHERE line_id IN (9001, 9002);
+WHERE line_id IN (556, 9001, 9002)
+GROUP BY department_id;
 ```
 
 ```
@@ -75,7 +76,8 @@ In practice, the accounting team would post this reclass in Oracle and it'll flo
 ## DQ2. Entries from the future
 
 You're reporting as of September, but the extract seems to run past it.
-Task: find any lines dated after September 2026
+
+Task: Find any lines dated after September 2026.
 
 ```sql
 SELECT
@@ -121,7 +123,7 @@ WHERE b.month > '2026-09-30'
     AND d.department_name = 'General & Administrative';
 ```
 
-Well, from this check, we can tell budgeted professional fees are RM48,000 per month so the RM15,000 could be actuals and there could be possibly more actuals. However, hard to tell unless we confirmed this with the accountant. 
+Budgeted professional fees are RM48,000 a month, so the RM15,000 doesn't look like a budget line posted as actuals. It could be a genuine October invoice posted early, with more to come. It's hard to tell without confirming with the accountant.
 
 ```
  line_id |   month    | account_code |   account_name    | account_type |     department_name      |  amount  
@@ -136,9 +138,9 @@ Treatment: To hold off and confirm with the accountant.
 ## DQ3. The double-loaded batch
 
 The Oracle support team mentions a September revenue upload was re-run after a timeout.
-Your task: find any line_id that appears more than once
-Decide: which copy do you keep, and what happens to the rest?
 
+Your task: Find any line_id that appears more than once.
+Decide: Which copy do you keep and what happens to the rest?
 
 ```sql
 WITH duplicate_rows AS (
@@ -175,8 +177,7 @@ WHERE a.account_type = 'Revenue';
      601 | 2026-09-01 | 4000         | Product sales | Revenue      |                 | -290737.44
 ```    
 
-Treatment: Although it's very likely to be a duplicate revenue line, I'll confirm with the accountant. Confirmed with accounting and reversed with an equal and opposite entry (line 9003). GL revenue now ties to the sales subledger.
-
+Treatment: It looked very likely to be a duplicate revenue line, but I confirmed with accounting before touching it. I then reversed the extra copy with an equal and opposite entry (line 9003) in `sql/adjustments.sql`. GL revenue now ties to the sales subledger (see DQ7).
 
 ```sql
 INSERT INTO gl_actuals (line_id, month, account_id, department_id, product_id, amount) VALUES
@@ -193,11 +194,12 @@ The duplicate is a credit entry, so the reversal would be a debit entry. Revenue
     9003 | 2026-09-01 | 4000         |          6 |  290737.44   -- reversal
 ```    
 
-## DQ4. Lines that can't be placed
+## DQ4. Lines that can't be assigned to the P&L.
 
 A few GL lines seem to have nowhere to go on the P&L.
-- Task: find lines missing a mandatory field: line_id, month, account or amount
-- Decide: can any of them go on the P&L as they are?
+
+- Task: Find lines missing a mandatory field: line_id, month, account or amount
+- Decide: Can any of the lines be reported in the P&L as they are?
 
 ```sql
 SELECT
@@ -225,27 +227,26 @@ WHERE g.line_id IS NULL
      633 | 2026-09-01 | 6400         | Travel       | Engineering              |         
 ```
 
-Neither line can go on the P&L as it is:
-- Line 632 has an amount but no account, so there's no P&L line to put it on.
-- Line 633 is September travel for Engineering, but with no amount, there's nothing to report.
-
-I used LEFT JOINs here on purpose. An INNER JOIN to `accounts` would drop line 632, the exact row I'm looking for.
+Both lines are not ready to go on the P&L:
+- Line 632 has an amount, but no account so there's no P&L line to assign it to.
+- Line 633 is a September travel expense for Engineering, but with no amount, so there's nothing to report.
 
 Treatment: Put both on hold and ask the accountant to complete the missing fields in Oracle. They'll come through in the next extract once fixed.
 
 ## DQ5. The account nobody knows
 
-Your P&L total doesn't match the GL total, and the gap sits in Engineering in August.
-- Task: find account, department or product codes that don't exist in their master tables
-- Decide: exclude them, or show them on the P&L until finance maps them?
+Your P&L total doesn't match the GL total and the gap sits in Engineering in August.
+- Task: Find account, department or product codes that don't exist in the accounts, departments or products tables.
+- Decide: Exclude them or show them on the P&L until finance maps them?
 
-An anti-join finds rows with no match: LEFT JOIN to the master table, then keep the rows where the master side is NULL.
+To find codes with no match, I used an anti-join: a `LEFT JOIN` from the GL to the accounts table, keeping only the rows where the accounts side came back `NULL`.
 
 ```sql
 SELECT
     g.line_id,
     g.month,
-    g.account_id,
+    g.account_id AS gl_account_id,
+    a.account_id AS account_account_id,
     d.department_name,
     g.amount
 FROM gl_actuals AS g
@@ -258,116 +259,157 @@ WHERE g.account_id IS NOT NULL
 ```
 
 ```
- line_id |   month    | account_id | department_name |  amount  
----------+------------+------------+-----------------+----------
-     634 | 2026-08-01 |         99 | Engineering     | 18500.00
+ line_id |   month    | gl_account_id | account_account_id | department_name |  amount  
+---------+------------+---------------+--------------------+-----------------+----------
+     634 | 2026-08-01 |            99 |                    | Engineering     | 18500.00
 ```
 
-`g.account_id IS NOT NULL` keeps out line 632 from DQ4. That line has no account at all, which is a different problem from having an account we don't recognise. The same check on departments and products returned no rows.
+A few notes on the query:
+- `a.account_id IS NULL` is the anti-join filter. It's only `NULL` when the `LEFT JOIN` found no matching account.
+- `g.account_id IS NOT NULL` excludes lines where the account is blank in `account_account_id`. Here I only want accounts that are filled in but don't exist in the accounts table.
 
-Account 99 isn't in the chart of accounts, so this RM18,500 falls off any P&L built with an INNER JOIN. That's the gap between the P&L and the GL total.
+Account 99 isn't in our account mapping, so any P&L built with an INNER JOIN silently drops this RM18,500. That's the gap between the P&L and the GL total.
 
-Treatment: Finance confirmed account 99 was created for software subscriptions but never added to the account mapping. I added it to the chart of accounts as 6700, under Other operating expenses:
+⚠️ How did this happen? 
+- Oracle won't accept a posting to an account that doesn't exist, so the posting was valid. 
+- The gap sits between Oracle and the reporting layer. Account 99 was set up in Oracle by the accounting team for software subscriptions, but it hadn't been added to the reporting account mapping that FP&A uses to build the P&L. In larger companies these are often different teams, so a new account can slip through if the handover is missed.
+
+Treatment: After confirming with finance, I added account 99 to the account mapping as 6700 Software subscriptions under Other operating expenses. I didn't change the GL line itself since it was correct all along. Only the mapping was incomplete.
 
 ```sql
 INSERT INTO accounts (account_id, account_code, account_name, account_type, fs_line, fs_sort_order) VALUES
     (99, '6700', 'Software subscriptions', 'Opex', 'Other operating expenses', 70);
 ```
 
+I've re-run the check and it returns no rows, so every GL line maps to a known account:
+
 ```
- line_id |   month    | account_code |      account_name      |         fs_line          | department_name |  amount  
----------+------------+--------------+------------------------+--------------------------+-----------------+----------
-     634 | 2026-08-01 | 6700         | Software subscriptions | Other operating expenses | Engineering     | 18500.00
+ line_id | month | gl_account_id | account_account_id | department_name | amount 
+---------+-------+---------------+--------------------+-----------------+--------
+(0 rows)
 ```
 
-In practice, the finance systems team would update the account mapping.
+I ran the same anti-join against `departments` and `products` and both came back with no rows, so account 99 is the only unknown code.
+
+```sql
+SELECT
+    g.line_id,
+    g.month,
+    g.account_id,
+    a.account_code,
+    a.account_name,
+    d.department_name,
+    a.fs_line,
+    g.amount
+FROM gl_actuals AS g
+LEFT JOIN accounts AS a
+    ON g.account_id = a.account_id
+LEFT JOIN departments AS d
+    ON g.department_id = d.department_id
+WHERE g.line_id = 634;
+```
+
+The line now lands in the P&L:
+
+```
+ line_id |   month    | account_id | account_code |      account_name      | department_name |         fs_line          |  amount  
+---------+------------+------------+--------------+------------------------+-----------------+--------------------------+----------
+     634 | 2026-08-01 |         99 | 6700         | Software subscriptions | Engineering     | Other operating expenses | 18500.00
+```
 
 ## DQ6. The June spike
 
 Your manager glances at the monthly trend and asks whether June marketing is a mistake.
-- Task: find any account whose monthly total moved more than 50% from the prior month
-- Decide: error or real? (The Marketing head confirms a trade show in June.)
+- Task: Check whether Marketing's monthly total moved more than 50% from the prior month.
+- Decide: Error or real? (The Marketing head confirms a trade show in June.)
 
 ```sql
-WITH monthly AS (
+WITH monthly_marketing AS (
     SELECT
         g.month,
         a.account_code,
         a.account_name,
-        SUM(g.amount) AS total
+        SUM(g.amount) AS total_amount
     FROM gl_actuals AS g
     INNER JOIN accounts AS a
         ON g.account_id = a.account_id
     WHERE g.month < '2026-10-01'
-        AND g.amount IS NOT NULL
+        AND a.account_name = 'Marketing'
     GROUP BY g.month, a.account_code, a.account_name
-),
-compared AS (
-    SELECT
-        *,
-        LAG(total) OVER (PARTITION BY account_code ORDER BY month) AS prior_month
-    FROM monthly
 )
-
+, monthly_change AS (
 SELECT
     month,
     account_code,
     account_name,
-    ROUND(prior_month, 0) AS prior_month,
-    ROUND(total, 0) AS this_month,
-    ROUND((total - prior_month) / ABS(prior_month) * 100, 1) AS pct_change
-FROM compared
-WHERE ABS(total - prior_month) / ABS(prior_month) > 0.5
-ORDER BY month, account_code;
+    total_amount AS curr_mth_amount,
+    LAG(total_amount) OVER (ORDER BY month) AS prev_mth_amount,
+    total_amount - LAG(total_amount) OVER (ORDER BY month) AS mth_change
+FROM monthly_marketing
+)
+
+SELECT
+    month,
+    account_name,
+    prev_mth_amount,
+    curr_mth_amount,
+    ROUND(100.0 * mth_change/prev_mth_amount,2) AS pct_change
+FROM monthly_change;
 ```
 
 ```
-   month    | account_code | account_name | prior_month | this_month | pct_change 
-------------+--------------+--------------+-------------+------------+------------
- 2026-06-01 | 6600         | Marketing    |       83141 |     270000 |      224.8
- 2026-07-01 | 6600         | Marketing    |      270000 |      87944 |      -67.4
+   month    | account_name | prev_mth_amount | curr_mth_amount | pct_change 
+------------+--------------+-----------------+-----------------+------------
+ 2026-01-01 | Marketing    |                 |        83165.42 |           
+ 2026-02-01 | Marketing    |        83165.42 |        89977.26 |       8.19
+ 2026-03-01 | Marketing    |        89977.26 |        85016.02 |      -5.51
+ 2026-04-01 | Marketing    |        85016.02 |        90552.65 |       6.51
+ 2026-05-01 | Marketing    |        90552.65 |        83140.75 |      -8.19
+ 2026-06-01 | Marketing    |        83140.75 |       270000.00 |     224.75 -- June with >50% increase
+ 2026-07-01 | Marketing    |       270000.00 |        87944.02 |     -67.43
+ 2026-08-01 | Marketing    |        87944.02 |        88604.20 |       0.75
+ 2026-09-01 | Marketing    |        88604.20 |        84540.10 |      -4.59
 ```
 
-`LAG` brings in the previous month's total for the same account, so each month can be compared with the one before. I divide by `ABS(prior_month)` because revenue is stored as negative, which would otherwise flip the sign of the % change.
+Marketing jumped about 225% in June and dropped back in July. The one-month spike looks like a one-off event rather than an error.
 
-Marketing jumped about 225% in June and dropped back in July. A one-month spike that returns to normal looks like a one-off event rather than an error.
+Treatment: No change. The Marketing head confirmed a trade show in June. 
 
-Treatment: No change. The Marketing head confirmed a trade show in June. A flag like this is a question, not proof of an error, and I'll mention the trade show in the commentary so it doesn't distort the trend.
-
-## DQ7. Revenue that doesn't tie
+## DQ7 Revenue that doesn't tie
 
 The sales team's September revenue report is lower than the GL by about RM0.3m.
-- Task: reconcile GL revenue (account 4000) to sales_volume by month and find which month is out
+- Task: Reconcile GL revenue (account 4000) to sales_volume by month and find which month is out.
 - Decide: which earlier issue explains the gap?
 
 ```sql
 WITH gl AS (
     SELECT
+        g.month,
+        -SUM(g.amount) AS gl_revenue
+    FROM gl_actuals AS g
+    WHERE g.account_id = 1                  -- 4000 Product sales
+        AND g.month < '2026-10-01'
+    GROUP BY g.month
+)
+, sv AS (
+    SELECT 
         month,
-        -SUM(amount) AS gl_revenue
-    FROM gl_actuals
-    WHERE account_id = 1                  -- 4000 Product sales
-        AND month < '2026-10-01'
-    GROUP BY month
-),
-sv AS (
-    SELECT
-        month,
-        SUM(actual_revenue) AS sales_revenue
-    FROM sales_volume
-    WHERE actual_revenue IS NOT NULL
+        SUM(actual_revenue) AS sv_revenue
+    FROM sales_volume AS sv
+    WHERE month < '2026-10-01'
     GROUP BY month
 )
 
 SELECT
-    sv.month,
+    gl.month,
     gl.gl_revenue,
-    sv.sales_revenue,
-    gl.gl_revenue - sv.sales_revenue AS difference
-FROM sv
-LEFT JOIN gl
+    sv.sv_revenue AS sales_revenue,
+    gl.gl_revenue - sv.sv_revenue AS difference
+FROM gl
+LEFT JOIN sv
     ON gl.month = sv.month
-WHERE gl.gl_revenue IS DISTINCT FROM sv.sales_revenue;
+WHERE gl.gl_revenue IS DISTINCT FROM sv.sv_revenue;
+
 ```
 
 ```
@@ -376,7 +418,7 @@ WHERE gl.gl_revenue IS DISTINCT FROM sv.sales_revenue;
  2026-09-01 | 8501409.13 |    8210671.69 |  290737.44
 ```
 
-Only September is out, and the difference is exactly RM290,737.44: the duplicate revenue line from DQ3. The two checks confirm each other.
+Only September is out and the difference is exactly RM290,737.44: the duplicate revenue line from DQ3. The two checks confirm each other.
 
 `-SUM(amount)` flips revenue back to positive so it can be compared with the sales report. `IS DISTINCT FROM` works like `<>` but also catches a month that's missing on one side.
 
@@ -392,7 +434,7 @@ The rows on hold go into `gl_exceptions` with a reason, and everything else into
 | DQ2 Future date | Oct professional fees (RM15,000) in a Sep extract | 1 | On hold, confirming with accounting |
 | DQ3 Duplicate | Sep CON-200 revenue (RM290,737) loaded twice | 1 | Reversed (line 9003) |
 | DQ4 Missing mandatory field | One line with no account, one with no amount | 2 | On hold, accounting to complete |
-| DQ5 Unmapped account | Account 99 (RM18,500) not in the chart of accounts | 1 | Mapped to 6700 Software subscriptions |
+| DQ5 Unmapped account | Account 99 (RM18,500) not in the reporting account mapping | 1 | Mapped to 6700 Software subscriptions |
 | DQ6 Month-over-month spike | June marketing ~3x normal | — | No change: genuine trade show |
 | DQ7 Revenue reconciliation | Sep GL revenue RM290,737 above sales subledger | — | Explained by DQ3, ties after the reversal |
 
