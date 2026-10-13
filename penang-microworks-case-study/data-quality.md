@@ -100,9 +100,9 @@ WHERE month > '2026-09-30';
 ```
 
 ```
- line_id |   month    | account_code |   account_name    | account_type |     department_name      |  amount  
----------+------------+--------------+-------------------+--------------+--------------------------+----------
-     631 | 2026-10-01 | 6500         | Professional fees | Opex         | General & Administrative | 15000.00
+ line_id |   month    | account_code |   account_name    | account_type |      department_name       |  amount  
+---------+------------+--------------+-------------------+--------------+----------------------------+----------
+     631 | 2026-10-01 | 6500         | Professional fees | Opex         | General and Administrative | 15000.00
 ```     
 
 Decide: Can these be actuals? Or is this a budgeted amount that was incorrectly posted as actuals?
@@ -123,17 +123,17 @@ LEFT JOIN departments AS d
     ON b.department_id = d.department_id
 WHERE b.month > '2026-09-30'
     AND a.account_code = '6500'
-    AND d.department_name = 'General & Administrative';
+    AND d.department_name = 'General and Administrative';
 ```
 
 Budgeted professional fees are RM48,000 a month, so the RM15,000 doesn't look like a budget line posted as actuals. It could be a genuine October invoice posted early with more to come. It's hard to tell without confirming with the accountant.
 
 ```
- line_id |   month    | account_code |   account_name    | account_type |     department_name      |  amount  
----------+------------+--------------+-------------------+--------------+--------------------------+----------
-     519 | 2026-10-01 | 6500         | Professional fees | Opex         | General & Administrative | 48000.00
-     571 | 2026-11-01 | 6500         | Professional fees | Opex         | General & Administrative | 48000.00
-     623 | 2026-12-01 | 6500         | Professional fees | Opex         | General & Administrative | 48000.00
+ line_id |   month    | account_code |   account_name    | account_type |      department_name       |  amount  
+---------+------------+--------------+-------------------+--------------+----------------------------+----------
+     519 | 2026-10-01 | 6500         | Professional fees | Opex         | General and Administrative | 48000.00
+     571 | 2026-11-01 | 6500         | Professional fees | Opex         | General and Administrative | 48000.00
+     623 | 2026-12-01 | 6500         | Professional fees | Opex         | General and Administrative | 48000.00
 ```     
 
 Treatment: To hold off and confirm with the accountant. 
@@ -224,10 +224,10 @@ WHERE g.line_id IS NULL
 ```
 
 ```
- line_id |   month    | account_code | account_name |     department_name      |  amount  
----------+------------+--------------+--------------+--------------------------+----------
-     632 | 2026-07-01 |              |              | General & Administrative | 12345.67
-     633 | 2026-09-01 | 6400         | Travel       | Engineering              |         
+ line_id |   month    | account_code | account_name |      department_name       |  amount  
+---------+------------+--------------+--------------+----------------------------+----------
+     632 | 2026-07-01 |              |              | General and Administrative | 12345.67
+     633 | 2026-09-01 | 6400         | Travel       | Engineering                |         
 ```
 
 Both lines are not ready to go on the P&L:

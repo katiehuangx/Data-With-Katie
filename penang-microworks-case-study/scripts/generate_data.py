@@ -49,7 +49,7 @@ DEPARTMENTS = [
     (1, "CC100", "Engineering", 45, 9000),
     (2, "CC200", "Operations", 25, 6000),
     (3, "CC300", "Sales & Marketing", 15, 8000),
-    (4, "CC400", "G&A", 18, 7000),
+    (4, "CC400", "General and Administrative", 18, 7000),
 ]
 
 PRODUCTS = [

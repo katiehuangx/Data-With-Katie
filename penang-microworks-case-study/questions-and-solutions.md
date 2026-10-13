@@ -12,9 +12,8 @@
 Q3 operating profit missed budget. This case study is the monthly variance analysis write-up that explains why, in SQL, an FS-format report and a short CFO memo.
 - **Why first:** variance analysis is the most common FP&A deliverable, so it's what Penang hiring managers will recognise first
 - **What it shows:** FS formatting in SQL, variance logic with sign conventions, a price-volume-mix bridge, a simple forecast and written commentary
-- **Scope:** small enough to finish in a few weeks; working capital and standard costing are separate case studies in the series
 
-Before any of the questions, the GL extract went through seven data quality checks. See [data-quality.md](./data-quality.md).
+Before any of the questions, the GL extract went through 7 data quality checks. See [data-quality.md](./data-quality.md).
 
 ## P&L at a Glance
 
@@ -36,7 +35,7 @@ Clean actuals (`gl_actuals_clean`) against budget, in FS format. All amounts in 
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Engineering | 1,563,523 | 1,385,100 | -178,423 | -12.9 |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Operations | 511,785 | 513,000 | 1,215 | 0.2 |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sales & Marketing | 410,605 | 410,400 | -205 | 0.0 |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;G&A | 432,380 | 430,920 | -1,460 | -0.3 |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;General and Administrative | 432,380 | 430,920 | -1,460 | -0.3 |
 | &nbsp;&nbsp;&nbsp;&nbsp;Rental and utilities | 597,058 | 600,000 | 2,942 | 0.5 |
 | &nbsp;&nbsp;&nbsp;&nbsp;Depreciation | 660,000 | 660,000 | 0 | 0.0 |
 | &nbsp;&nbsp;&nbsp;&nbsp;Other operating expenses | 604,038 | 600,000 | -4,038 | -0.7 |
@@ -59,7 +58,7 @@ Clean actuals (`gl_actuals_clean`) against budget, in FS format. All amounts in 
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Engineering | 4,400,741 | 4,155,300 | -245,441 | -5.9 |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Operations | 1,541,538 | 1,539,000 | -2,538 | -0.2 |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sales & Marketing | 1,232,937 | 1,231,200 | -1,737 | -0.1 |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;G&A | 1,293,341 | 1,292,760 | -581 | 0.0 |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;General and Administrative | 1,293,341 | 1,292,760 | -581 | 0.0 |
 | &nbsp;&nbsp;&nbsp;&nbsp;Rental and utilities | 1,824,110 | 1,800,000 | -24,110 | -1.3 |
 | &nbsp;&nbsp;&nbsp;&nbsp;Depreciation | 1,980,000 | 1,980,000 | 0 | 0.0 |
 | &nbsp;&nbsp;&nbsp;&nbsp;Other operating expenses | 1,969,595 | 1,800,000 | -169,595 | -9.4 |

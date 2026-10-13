@@ -81,7 +81,7 @@ INSERT INTO departments (department_id, cost_center_code, department_name) VALUE
     (1, 'CC100', 'Engineering'),
     (2, 'CC200', 'Operations'),
     (3, 'CC300', 'Sales & Marketing'),
-    (4, 'CC400', 'General & Administrative');
+    (4, 'CC400', 'General and Administrative');
 
 -- products: 6 rows
 INSERT INTO products (product_id, product_code, product_name, product_family) VALUES

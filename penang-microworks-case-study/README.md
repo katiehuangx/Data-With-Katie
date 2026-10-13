@@ -5,7 +5,7 @@
 ## The company
 
 - **Products:** 6 products in 3 families: sensor modules (high margin), power modules (low margin), connectivity boards (middle)
-- **Cost centers:** Engineering, Operations, Sales & Marketing, G&A
+- **Cost centers:** Engineering, Operations, Sales & Marketing, General and Administrative
 - **Period:** FY2026 budget for Jan–Dec; actuals for Jan–Sep
 - **Size:** about RM98m budgeted revenue, 15% operating margin
 
