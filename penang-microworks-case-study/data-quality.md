@@ -1,6 +1,6 @@
 # Data Quality Checks: Issues found in the September 2026 GL extract
 
-You've just received the September 2026 GL extract from Oracle. Before building the variance pack, you run your usual checks and hit seven issues. 
+You've just received the September 2026 GL extract from Oracle. Before starting the variance analysis, you run your usual checks and hit seven issues. 
 
 For each one: find the rows, decide the treatment and note it for the data-quality.md README. Every bad row is either put on hold with a reason or corrected with an adjusting entry.
 

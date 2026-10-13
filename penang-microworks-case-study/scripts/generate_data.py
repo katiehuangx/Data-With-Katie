@@ -36,7 +36,7 @@ ACCOUNTS = [
     (5, "5200", "Manufacturing overhead", "COGS", "Cost of sales", 20),
     (6, "6000", "Salaries and wages", "Opex", "Staff costs", 40),
     (7, "6100", "EPF, SOCSO and EIS contributions", "Opex", "Staff costs", 40),
-    (8, "6200", "Rent and utilities", "Opex", "Facilities", 50),
+    (8, "6200", "Rental and utilities", "Opex", "Rental and utilities", 50),
     (9, "6300", "Depreciation", "Opex", "Depreciation", 60),
     (10, "6400", "Travel", "Opex", "Other operating expenses", 70),
     (11, "6500", "Professional fees", "Opex", "Other operating expenses", 70),

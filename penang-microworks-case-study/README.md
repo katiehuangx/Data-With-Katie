@@ -111,7 +111,7 @@ The raw GL tables have no keys on purpose, like a real ERP extract. Run the data
 
 ## Questions
 
-The 10 case study questions, definitions and solutions are in [questions-and-solutions.md](questions-and-solutions.md). All amounts are in Malaysian Ringgit (RM).
+The case study questions, definitions and solutions are in [questions-and-solutions.md](questions-and-solutions.md). All amounts are in Malaysian Ringgit (RM).
 
 ## Findings
 
