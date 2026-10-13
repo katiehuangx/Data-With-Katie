@@ -34,7 +34,7 @@ WHERE (a.account_type = 'Opex'
 
 That's the S&M manager's missing travel claims. The cost was posted, but it's not assigned to the cost center in `department_id`, so it doesn't show up in the department's report.
 
-Treatment: After confirming with the S&M manager, I reclassed the cost to Sales & Marketing with a journal entry in `sql/adjustments.sql` rather than editing the original line:
+Treatment: After confirming with the S&M manager, I reclassed the cost to Sales & Marketing with a journal entry in `sql/02_adjustments.sql` rather than editing the original line:
 - Healthy accounting practice is to correct records with an adjusting entry, not by overwriting them. 
 - This is to ensure proper audit trail showing what changed and why.
 
@@ -180,7 +180,7 @@ WHERE a.account_type = 'Revenue';
      601 | 2026-09-01 | 4000         | Product sales | Revenue      |                 | -290737.44
 ```    
 
-Treatment: It looked very likely to be a duplicate revenue line, but I confirmed with accounting before touching it. I then reversed the extra copy with an equal and opposite entry (line 9003) in `sql/adjustments.sql`. GL revenue now ties to the sales sub-ledger (see DQ7).
+Treatment: It looked very likely to be a duplicate revenue line, but I confirmed with accounting before touching it. I then reversed the extra copy with an equal and opposite entry (line 9003) in `sql/02_adjustments.sql`. GL revenue now ties to the sales sub-ledger (see DQ7).
 
 ```sql
 INSERT INTO gl_actuals (line_id, month, account_id, department_id, product_id, amount) VALUES
@@ -432,7 +432,7 @@ Treatment: No separate adjustment needed. After DQ3 reversal, GL revenue ties to
 
 ## Wrap-up
 
-After the adjusting entries in `sql/adjustments.sql`, `sql/03_gl_actuals_clean.sql` builds `gl_actuals_clean`: the GL minus the 3 lines on hold (DQ2 and DQ4). Every later question reads from `gl_actuals_clean`.
+After the adjusting entries in `sql/02_adjustments.sql`, `sql/03_gl_actuals_clean.sql` builds `gl_actuals_clean`: the GL minus the 3 lines on hold (DQ2 and DQ4). Every later question reads from `gl_actuals_clean`.
 
 ```
 | Check | Issue found | Rows | Treatment |

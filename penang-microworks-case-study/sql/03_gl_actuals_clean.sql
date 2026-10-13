@@ -1,6 +1,6 @@
 -- =====================================================================
 -- Clean GL: the table every analysis query reads from
--- Run after adjustments.sql:
+-- Run after 02_adjustments.sql:
 --   psql penang_microworks -f sql/03_gl_actuals_clean.sql
 --
 -- gl_actuals already includes the adjusting entries (9001-9003), so the

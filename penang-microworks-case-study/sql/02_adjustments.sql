@@ -1,7 +1,7 @@
 -- =====================================================================
 -- Adjustments: corrections confirmed with the business
--- Run last, after the data quality checks:
---   psql penang_microworks -f sql/adjustments.sql
+-- Run after the data quality checks in data-quality.md:
+--   psql penang_microworks -f sql/02_adjustments.sql
 --
 -- NOTE ON PRACTICE
 -- In a real finance team, FP&A flags the issue, accounting posts the

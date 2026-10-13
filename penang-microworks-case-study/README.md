@@ -29,7 +29,7 @@ psql penang_microworks -f sql/00_create_tables.sql
 psql penang_microworks -f sql/01_load_data.sql
 
 # 3. Post the adjusting entries, then build the clean GL view
-psql penang_microworks -f sql/adjustments.sql
+psql penang_microworks -f sql/02_adjustments.sql
 psql penang_microworks -f sql/03_gl_actuals_clean.sql
 ```
 
@@ -105,19 +105,13 @@ erDiagram
 
 ## Data quality
 
-The raw GL tables have no keys on purpose, like a real ERP extract. Run the data quality checks before any analysis.
+The raw GL tables have no keys on purpose, like a real ERP extract. Run the data quality checks in [data-quality.md](data-quality.md) before any analysis.
 
 *(Findings and treatment go here.)*
 
 ## Questions
 
-1. What's the P&L in FS format: actual vs budget, with $ and % variances?
-2. Which P&L lines drove the operating profit miss?
-3. How much of the revenue variance came from price, volume and mix?
-4. Which product families saw gross margin slip vs budget?
-5. Which departments overspent on opex, and by how much?
-6. What's the full-year forecast: actuals to date plus budget for the remaining months?
-7. The CFO memo: the 3 main drivers explained in plain words
+The 10 case study questions, definitions and solutions are in [questions-and-solutions.md](questions-and-solutions.md). All amounts are in Malaysian Ringgit (RM).
 
 ## Findings
 
