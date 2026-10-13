@@ -1,11 +1,14 @@
 # Data Quality Checks: Issues found in the September 2026 GL extract
 
-You've just received the September GL extract from Oracle. Before building the variance pack, you run your usual checks and hit seven issues. For each one: find the rows, decide the treatment, and note it for the README. Every bad row is either put on hold with a reason or corrected with an adjusting entry, never silently dropped.
+You've just received the September 2026 GL extract from Oracle. Before building the variance pack, you run your usual checks and hit seven issues. 
+
+For each one: find the rows, decide the treatment and note it for the data-quality.md README. Every bad row is either put on hold with a reason or corrected with an adjusting entry.
 
 ## DQ1. The missing department
 
 The Sales & Marketing manager says August travel in your OPEX report is lower than her team's claims.
-- Task: find OPEX lines with no department.
+
+Task: Find OPEX lines with no department.
 
 ```sql
 SELECT 
@@ -19,7 +22,8 @@ SELECT
 FROM gl_actuals AS g
 INNER JOIN accounts AS a
   ON a.account_id = g.account_id
-WHERE (a.account_type = 'Opex' AND g.department_id IS NULL);
+WHERE (a.account_type = 'Opex' 
+    AND g.department_id IS NULL);
 ```
 
 ```
@@ -28,10 +32,10 @@ WHERE (a.account_type = 'Opex' AND g.department_id IS NULL);
      556 | 2026-08-01 | 6400         | Opex         |               |            | 26678.86
 ```
 
-That's the S&M manager's missing travel claims. The cost was posted, but it's not assigned to the cost center (`department_id`), so it doesn't show up in her department's report.
+That's the S&M manager's missing travel claims. The cost was posted, but it's not assigned to the cost center in `department_id`, so it doesn't show up in the department's report.
 
 Treatment: After confirming with the S&M manager, I reclassed the cost to Sales & Marketing with a journal entry in `sql/adjustments.sql` rather than editing the original line:
-- Healthy accounting practice is to correct records with an adjusting entry, not by overwriting them 
+- Healthy accounting practice is to correct records with an adjusting entry, not by overwriting them. 
 - This is to ensure proper audit trail showing what changed and why.
 
 ```sql
@@ -42,7 +46,6 @@ INSERT INTO gl_actuals (line_id, month, account_id, department_id, product_id, a
 ```
 
 The double entry with original entry:
-
 ```
  line_id |   month    | account_code | account_type | department_id | product_id |   amount  | 
 ---------+------------+--------------+--------------+---------------+------------+-----------
@@ -51,7 +54,7 @@ The double entry with original entry:
     9002 | 2026-08-01 | 6400         | Opex         |               |            | -26678.86 
 ```
 
-556 is the original entry, 9001 the debit to Sales & Marketing, and 9002 the credit out of Unassigned. 
+556 is the original entry, 9001 is the debit to Sales & Marketing and 9002 the credit out of Unassigned. 
 
 To check:
 ```sql
@@ -102,7 +105,7 @@ WHERE month > '2026-09-30';
      631 | 2026-10-01 | 6500         | Professional fees | Opex         | General & Administrative | 15000.00
 ```     
 
-• Decide: Can these be actuals? Or is this a budgeted amount that was incorrectly posted as actuals?
+Decide: Can these be actuals? Or is this a budgeted amount that was incorrectly posted as actuals?
 
 ```sql
 SELECT
@@ -123,7 +126,7 @@ WHERE b.month > '2026-09-30'
     AND d.department_name = 'General & Administrative';
 ```
 
-Budgeted professional fees are RM48,000 a month, so the RM15,000 doesn't look like a budget line posted as actuals. It could be a genuine October invoice posted early, with more to come. It's hard to tell without confirming with the accountant.
+Budgeted professional fees are RM48,000 a month, so the RM15,000 doesn't look like a budget line posted as actuals. It could be a genuine October invoice posted early with more to come. It's hard to tell without confirming with the accountant.
 
 ```
  line_id |   month    | account_code |   account_name    | account_type |     department_name      |  amount  
@@ -177,7 +180,7 @@ WHERE a.account_type = 'Revenue';
      601 | 2026-09-01 | 4000         | Product sales | Revenue      |                 | -290737.44
 ```    
 
-Treatment: It looked very likely to be a duplicate revenue line, but I confirmed with accounting before touching it. I then reversed the extra copy with an equal and opposite entry (line 9003) in `sql/adjustments.sql`. GL revenue now ties to the sales subledger (see DQ7).
+Treatment: It looked very likely to be a duplicate revenue line, but I confirmed with accounting before touching it. I then reversed the extra copy with an equal and opposite entry (line 9003) in `sql/adjustments.sql`. GL revenue now ties to the sales sub-ledger (see DQ7).
 
 ```sql
 INSERT INTO gl_actuals (line_id, month, account_id, department_id, product_id, amount) VALUES
@@ -198,8 +201,8 @@ The duplicate is a credit entry, so the reversal would be a debit entry. Revenue
 
 A few GL lines seem to have nowhere to go on the P&L.
 
-- Task: Find lines missing a mandatory field: line_id, month, account or amount
-- Decide: Can any of the lines be reported in the P&L as they are?
+Task: Find lines missing a mandatory field: line_id, month, account or amount
+Decide: Can any of these lines be reported in the P&L as it is without the mandatory fields?
 
 ```sql
 SELECT
@@ -236,8 +239,9 @@ Treatment: Put both on hold and ask the accountant to complete the missing field
 ## DQ5. The account nobody knows
 
 Your P&L total doesn't match the GL total and the gap sits in Engineering in August.
-- Task: Find account, department or product codes that don't exist in the accounts, departments or products tables.
-- Decide: Exclude them or show them on the P&L until finance maps them?
+
+Task: Find account, department or product codes that don't exist in the accounts, departments or products tables.
+Decide: Exclude them or show them on the P&L until finance maps them?
 
 To find codes with no match, I used an anti-join: a `LEFT JOIN` from the GL to the accounts table, keeping only the rows where the accounts side came back `NULL`.
 
@@ -250,9 +254,9 @@ SELECT
     d.department_name,
     g.amount
 FROM gl_actuals AS g
-LEFT JOIN accounts AS a
+LEFT JOIN accounts AS a                     -- anti-join
     ON g.account_id = a.account_id
-LEFT JOIN departments AS d
+LEFT JOIN departments AS d                  -- anti-join
     ON g.department_id = d.department_id
 WHERE g.account_id IS NOT NULL
     AND a.account_id IS NULL;
@@ -266,9 +270,9 @@ WHERE g.account_id IS NOT NULL
 
 A few notes on the query:
 - `a.account_id IS NULL` is the anti-join filter. It's only `NULL` when the `LEFT JOIN` found no matching account.
-- `g.account_id IS NOT NULL` excludes lines where the account is blank in `account_account_id`. Here I only want accounts that are filled in but don't exist in the accounts table.
+- `g.account_id IS NOT NULL` excludes lines where the account is blank in `account_account_id`. Here I only want accounts that are filled in, but don't exist in the accounts table.
 
-Account 99 isn't in our account mapping, so any P&L built with an INNER JOIN silently drops this RM18,500. That's the gap between the P&L and the GL total.
+Account 99 isn't in our account mapping, so any P&L built with an `INNER JOIN` silently drops this RM18,500. That's the gap between the P&L and the GL total.
 
 ⚠️ How did this happen? 
 - Oracle won't accept a posting to an account that doesn't exist, so the posting was valid. 
@@ -320,8 +324,9 @@ The line now lands in the P&L:
 ## DQ6. The June spike
 
 Your manager glances at the monthly trend and asks whether June marketing is a mistake.
-- Task: Check whether Marketing's monthly total moved more than 50% from the prior month.
-- Decide: Error or real? (The Marketing head confirms a trade show in June.)
+
+Task: Check whether Marketing's monthly total moved more than 50% from the prior month.
+Decide: Error or real expense?
 
 ```sql
 WITH monthly_marketing AS (
@@ -365,7 +370,7 @@ FROM monthly_change;
  2026-03-01 | Marketing    |        89977.26 |        85016.02 |      -5.51
  2026-04-01 | Marketing    |        85016.02 |        90552.65 |       6.51
  2026-05-01 | Marketing    |        90552.65 |        83140.75 |      -8.19
- 2026-06-01 | Marketing    |        83140.75 |       270000.00 |     224.75 -- June with >50% increase
+ 2026-06-01 | Marketing    |        83140.75 |       270000.00 |     224.75 -- June with > 50% increase
  2026-07-01 | Marketing    |       270000.00 |        87944.02 |     -67.43
  2026-08-01 | Marketing    |        87944.02 |        88604.20 |       0.75
  2026-09-01 | Marketing    |        88604.20 |        84540.10 |      -4.59
@@ -378,8 +383,9 @@ Treatment: No change. The Marketing head confirmed a trade show in June.
 ## DQ7 Revenue that doesn't tie
 
 The sales team's September revenue report is lower than the GL by about RM0.3m.
-- Task: Reconcile GL revenue (account 4000) to sales_volume by month and find which month is out.
-- Decide: which earlier issue explains the gap?
+
+Task: Reconcile GL revenue (account 4000) to sales volume by month and find which month is out.
+Decide: Which earlier issue explains the gap?
 
 ```sql
 WITH gl AS (
@@ -420,22 +426,22 @@ WHERE gl.gl_revenue IS DISTINCT FROM sv.sv_revenue;
 
 Only September is out and the difference is exactly RM290,737.44: the duplicate revenue line from DQ3. The two checks confirm each other.
 
-`-SUM(amount)` flips revenue back to positive so it can be compared with the sales report. `IS DISTINCT FROM` works like `<>` but also catches a month that's missing on one side.
+`-SUM(amount)` flips revenue back to positive so it can be compared with the sales report. `IS DISTINCT FROM` works like `<>` but also catches a month that's missing on another side.
 
-Treatment: No separate adjustment needed. After the DQ3 reversal, GL revenue ties to the sales subledger in every month and this query returns no rows.
+Treatment: No separate adjustment needed. After DQ3 reversal, GL revenue ties to the sales sub-ledger in every month and this query returns no rows.
 
 ## Wrap-up
 
-The rows on hold go into `gl_exceptions` with a reason, and everything else into `gl_actuals_clean`. Every later question reads from `gl_actuals_clean`.
+The rows on hold go into `gl_exceptions` with a reason and everything else into `gl_actuals_clean`. Every later question reads from `gl_actuals_clean`.
 
+```
 | Check | Issue found | Rows | Treatment |
 | --- | --- | --- | --- |
 | DQ1 Missing department | Aug travel (RM26,679) with no cost center | 1 | Reclassed to Sales & Marketing (lines 9001–9002) |
-| DQ2 Future date | Oct professional fees (RM15,000) in a Sep extract | 1 | On hold, confirming with accounting |
-| DQ3 Duplicate | Sep CON-200 revenue (RM290,737) loaded twice | 1 | Reversed (line 9003) |
-| DQ4 Missing mandatory field | One line with no account, one with no amount | 2 | On hold, accounting to complete |
+| DQ2 Future date | Oct professional fees (RM15,000) in a Sep extract | 1 | On hold. Confirming with accounting |
+| DQ3 Duplicate | Sept revenue (RM290,737) loaded twice | 1 | Reversed (line 9003) |
+| DQ4 Missing mandatory field | One line with no account, one with no amount | 2 | On hold. Accounting to complete |
 | DQ5 Unmapped account | Account 99 (RM18,500) not in the reporting account mapping | 1 | Mapped to 6700 Software subscriptions |
-| DQ6 Month-over-month spike | June marketing ~3x normal | — | No change: genuine trade show |
-| DQ7 Revenue reconciliation | Sep GL revenue RM290,737 above sales subledger | — | Explained by DQ3, ties after the reversal |
-
-635 rows loaded, 3 put on hold (DQ2 and DQ4), and 632 used for analysis, plus the three adjusting entries.
+| DQ6 Month-over-month spike | June marketing ~3x normal | — | No change: Genuine trade show |
+| DQ7 Revenue reconciliation | Sep GL revenue RM290,737 above sales sub-ledger | — | Explained by DQ3. Ties after the reversal |
+```
