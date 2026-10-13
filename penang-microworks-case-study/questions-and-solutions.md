@@ -3,21 +3,79 @@
 ## Table of Contents
 
 - [The story](#the-story)
-- [P&L at a Glance](#pl-at-a-glance)
-- [Case Study Questions](#case-study-questions)
-- [Case Study Solution](#case-study-solution)
+- [Schema](#schema)
+- [P&L at a glance](#pl-at-a-glance)
+- [Case study questions](#case-study-questions)
+- [Case study solution](#case-study-solution)
 
 ## The story
 
 Q3 operating profit missed budget. This case study is the monthly variance analysis write-up that explains why, in SQL, an FS-format report and a short CFO memo.
-- **Why first:** variance analysis is the most common FP&A deliverable, so it's what Penang hiring managers will recognise first
-- **What it shows:** FS formatting in SQL, variance logic with sign conventions, a price-volume-mix bridge, a simple forecast and written commentary
 
 Before any of the questions, the GL extract went through 7 data quality checks. See [data-quality.md](./data-quality.md).
 
-## P&L at a Glance
+## Schema
 
-Clean actuals (`gl_actuals_clean`) against budget, in FS format. All amounts in RM. A negative variance is bad for profit.
+Six tables: three lookup tables (accounts, departments, products) and three fact tables (GL actuals, GL budget and monthly sales volume). The questions read actuals from `gl_actuals_clean`, a view of `gl_actuals` after the data quality adjustments.
+
+```mermaid
+erDiagram
+    ACCOUNTS ||--o{ GL_ACTUALS : "posted to"
+    ACCOUNTS ||--o{ GL_BUDGET : "budgeted on"
+    DEPARTMENTS ||--o{ GL_ACTUALS : "charged to"
+    DEPARTMENTS ||--o{ GL_BUDGET : "budgeted for"
+    PRODUCTS ||--o{ GL_ACTUALS : "sold or made"
+    PRODUCTS ||--o{ GL_BUDGET : "planned for"
+    PRODUCTS ||--o{ SALES_VOLUME : "sold as"
+
+    ACCOUNTS {
+        int account_id PK
+        string account_code
+        string account_name
+        string account_type
+        string fs_line
+        int fs_sort_order
+    }
+    DEPARTMENTS {
+        int department_id PK
+        string cost_center_code
+        string department_name
+    }
+    PRODUCTS {
+        int product_id PK
+        string product_code
+        string product_name
+        string product_family
+    }
+    GL_ACTUALS {
+        int line_id
+        date month
+        int account_id FK
+        int department_id FK
+        int product_id FK
+        decimal amount
+    }
+    GL_BUDGET {
+        int line_id
+        date month
+        int account_id FK
+        int department_id FK
+        int product_id FK
+        decimal amount
+    }
+    SALES_VOLUME {
+        date month
+        int product_id FK
+        int actual_units
+        decimal actual_revenue
+        int budget_units
+        decimal budget_revenue
+    }
+```
+
+## P&L at a glance
+
+Clean actuals (`gl_actuals_clean`) against budget in FS format. All amounts in RM. A negative variance is bad for profit.
 
 ### Q3 (July to September 2026)
 
@@ -70,7 +128,7 @@ Clean actuals (`gl_actuals_clean`) against budget, in FS format. All amounts in 
 All amounts are in Malaysian Ringgit (RM).
 
 Definitions used throughout:
-- **Actuals** come from `gl_actuals_clean`, never `gl_actuals`. It has the adjusting entries and leaves out the 3 lines on hold.
+- **Actuals** come from `gl_actuals_clean`, not `gl_actuals`. It has the adjusting entries and leaves out the 3 lines on hold.
 - **Budget** comes from `gl_budget`.
 - **Q3** = July to September 2026. **YTD** = January to September 2026.
 - **Sign convention:** the GL stores debits as positive and credits as negative, so revenue is negative and costs are positive. Flip the sign (`-SUM(amount)`) to show revenue and profit as positive numbers.
@@ -82,19 +140,17 @@ Definitions used throughout:
 
 ### Core Questions
 
-1. [Q3 at a Glance](#1-q3-at-a-glance): How far did Q3 operating profit miss budget? Return revenue, cost of sales, gross profit, operating expenses and operating profit for Q3, with actual, budget, variance (RM) and variance % (rounded to 1 decimal place).
+1. [Revenue by Product Family](#1-revenue-by-product-family): Which product families drove the revenue miss? Return product family, Q3 actual revenue, budget revenue, variance (RM) and variance %, sorted by the most negative variance first.
 
-2. [Revenue by Product Family](#2-revenue-by-product-family): Which product families drove the revenue miss? Return product family, Q3 actual revenue, budget revenue, variance (RM) and variance %, sorted by the most negative variance first.
+2. [Gross Margin by Product Family](#2-gross-margin-by-product-family): Q1 showed revenue shifting away from sensor modules towards connectivity boards. Did that shift hurt profit more than the revenue figure suggests? Return product family, actual and budget gross profit, and actual and budget gross margin % (rounded to 1 decimal place).
 
-3. [Gross Margin by Product Family](#3-gross-margin-by-product-family): Revenue is only half the story. Did the mix shift towards lower-margin products? Return product family, actual and budget gross profit, and actual and budget gross margin % (rounded to 1 decimal place).
+3. [Opex by Cost Center](#3-opex-by-cost-center): Which departments overspent in Q3? Return department name, actual opex, budget opex, variance (RM) and variance %, sorted by the biggest overspend first.
 
-4. [Opex by Cost Center](#4-opex-by-cost-center): Which departments overspent in Q3? Return department name, actual opex, budget opex, variance (RM) and variance %, sorted by the biggest overspend first.
-
-5. [Monthly Trend](#5-monthly-trend): Was Q3 a sudden drop or a slow slide? For each month January to September, return actual and budget operating profit, the monthly variance, and the YTD cumulative variance (using a window function).
+4. [Monthly Trend](#4-monthly-trend): Was Q3 a sudden drop or a slow slide? For each month January to September, return actual and budget operating profit, the monthly variance, and the YTD cumulative variance (using a window function).
 
 ### Advanced Questions
 
-6. [Price-Volume-Mix Bridge](#6-price-volume-mix-bridge): Split the Q3 product revenue variance into price, volume and mix effects by product, using `sales_volume`. Return product code, price effect, volume effect, mix effect and total variance, plus a total row. The three effects should add up to actual − budget revenue.
+5. [Price-Volume-Mix Bridge](#5-price-volume-mix-bridge): Split the Q3 product revenue variance into price, volume and mix effects by product, using `sales_volume`. Return product code, price effect, volume effect, mix effect and total variance, plus a total row. The three effects should add up to actual − budget revenue.
 
    | Effect | Formula (per product) |
    | --- | --- |
@@ -104,12 +160,148 @@ Definitions used throughout:
 
    Price = revenue ÷ units. Budget share of units = the product's budget units ÷ total budget units.
 
-7. [Operating Profit Bridge](#7-operating-profit-bridge): Walk from Q3 budget operating profit to actual operating profit in one table, ready for a waterfall chart. Return one row per step: budget operating profit, price, volume, mix, sales returns (account 4100, which isn't in `sales_volume`), cost of sales, each opex fs_line, and actual operating profit. Each step should show its RM impact, and the steps should add up from budget to actual.
+6. [Operating Profit Bridge](#6-operating-profit-bridge): Walk from Q3 budget operating profit to actual operating profit in one table, ready for a waterfall chart. Return one row per step: budget operating profit, price, volume, mix, sales returns (account 4100, which isn't in `sales_volume`), cost of sales, each opex fs_line, and actual operating profit. Each step should show its RM impact, and the steps should add up from budget to actual.
 
-8. [Full-Year Forecast](#8-full-year-forecast): Where will FY2026 land? Build a simple forecast as YTD actuals (Jan–Sep) plus budget for October to December. Return revenue, gross profit, opex and operating profit for the forecast and the full-year budget, with the variance between them.
+7. [Full-Year Forecast](#7-full-year-forecast): Where will FY2026 land? Build a simple forecast as YTD actuals (Jan–Sep) plus budget for October to December. Return revenue, gross profit, opex and operating profit for the forecast and the full-year budget, with the variance between them.
 
-9. [CFO Memo](#9-cfo-memo): Using your answers above, write a short memo (no more than 200 words) to the CFO: how much Q3 missed by, the top three drivers with their RM impact, and what the forecast means for the full year.
+8. [CFO Memo](#8-cfo-memo): Using your answers above, write a short memo (no more than 200 words) to the CFO: how much Q3 missed by, the top three drivers with their RM impact, and what the forecast means for the full year.
 
 ## Case Study Solution
 
+### 1. Revenue by Product Family
 
+Which product families drove the revenue miss? Return product family, Q3 actual revenue, budget revenue, variance (RM) and variance %, sorted by the most negative variance first.
+
+```sql
+WITH revenue_actuals AS (
+    SELECT
+        p.product_family,
+        -SUM(g.amount) AS actual_revenue
+    FROM gl_actuals_clean AS g
+    INNER JOIN accounts AS a
+        ON g.account_id = a.account_id
+    INNER JOIN products AS p
+        ON g.product_id = p.product_id
+    WHERE a.account_type = 'Revenue'
+        AND (month >= '2026-07-01' AND month <= '2026-09-30')
+    GROUP BY p.product_family
+)
+, revenue_budget AS (
+    SELECT
+        p.product_family,
+        -SUM(b.amount) AS budget_revenue
+    FROM gl_budget AS b
+    INNER JOIN accounts AS a
+        ON b.account_id = a.account_id
+    INNER JOIN products AS p
+        ON b.product_id = p.product_id
+    WHERE a.account_type = 'Revenue'
+        AND (month >= '2026-07-01' AND month <= '2026-09-30')
+    GROUP BY p.product_family
+)
+
+SELECT 
+    ra.product_family,
+    ra.actual_revenue,
+    rb.budget_revenue,
+    ra.actual_revenue - rb.budget_revenue AS variance,
+    ROUND(100.0 * ((ra.actual_revenue - rb.budget_revenue)/rb.budget_revenue),1) AS variance_pct
+FROM revenue_actuals AS ra
+INNER JOIN revenue_budget AS rb
+    ON ra.product_family = rb.product_family
+ORDER BY variance ASC;
+```
+
+**✅ Result:**
+```
+   product_family    | actual_revenue | budget_revenue |  variance   | variance_pct 
+---------------------+----------------+----------------+-------------+--------------
+ Sensor modules      |     8565644.60 |     9636660.00 | -1071015.40 |        -11.1
+ Power modules       |     8803116.29 |     9207000.00 |  -403883.71 |         -4.4
+ Connectivity boards |     6814470.36 |     6214725.00 |   599745.36 |          9.7
+(3 rows)
+```
+
+**📊 Commentary:** Total actual and budget revenue tie to the P&L figures. Revenue missed budget by RM875k, but that's the net figure. 
+
+When we drill down by product family, sensor modules alone missed by RM1.07m (-11.1%) and power modules by RM0.4k (-4.4%). Connectivity boards beat budget by RM600k (9.7%) which offset the two negatives and made the total variance smaller. 
+
+### 2. Gross Margin by Product Family
+
+Q1 showed revenue shifting away from sensor modules towards connectivity boards. Did that shift hurt profit more than the revenue figure suggests? Return product family, actual and budget gross profit, and actual and budget gross margin % (rounded to 1 decimal place).
+
+```sql
+
+```
+
+
+**✅ Result:**
+
+### 3. Opex by Cost Center
+
+Which departments overspent in Q3? Return department name, actual opex, budget opex, variance (RM) and variance %, sorted by the biggest overspend first.
+
+```sql
+
+```
+
+
+**✅ Result:**
+
+### 4. Monthly Trend
+
+Was Q3 a sudden drop or a slow slide? For each month January to September, return actual and budget operating profit, the monthly variance, and the YTD cumulative variance (using a window function).
+
+```sql
+
+```
+
+
+**✅ Result:**
+
+### 5. Price-Volume-Mix Bridge
+
+Split the Q3 product revenue variance into price, volume and mix effects by product, using `sales_volume`. Return product code, price effect, volume effect, mix effect and total variance, plus a total row. The three effects should add up to actual − budget revenue.
+
+| Effect | Formula (per product) |
+| --- | --- |
+| Price | (actual price − budget price) × actual units |
+| Volume | (total actual units × budget share of units − budget units) × budget price |
+| Mix | (actual units − total actual units × budget share of units) × budget price |
+
+Price = revenue ÷ units. Budget share of units = the product's budget units ÷ total budget units.
+
+```sql
+
+```
+
+
+**✅ Result:**
+
+### 6. Operating Profit Bridge
+
+Walk from Q3 budget operating profit to actual operating profit in one table, ready for a waterfall chart. Return one row per step: budget operating profit, price, volume, mix, sales returns (account 4100, which isn't in `sales_volume`), cost of sales, each opex fs_line, and actual operating profit. Each step should show its RM impact, and the steps should add up from budget to actual.
+
+```sql
+
+```
+
+
+**✅ Result:**
+
+### 7. Full-Year Forecast
+
+Where will FY2026 land? Build a simple forecast as YTD actuals (Jan–Sep) plus budget for October to December. Return revenue, gross profit, opex and operating profit for the forecast and the full-year budget, with the variance between them.
+
+```sql
+
+```
+
+
+**✅ Result:**
+
+### 8. CFO Memo
+
+Using your answers above, write a short memo (no more than 200 words) to the CFO: how much Q3 missed by, the top three drivers with their RM impact, and what the forecast means for the full year.
+
+**✅ Memo:**
