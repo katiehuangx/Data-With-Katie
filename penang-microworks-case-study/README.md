@@ -27,6 +27,10 @@ python3 scripts/generate_data.py
 createdb penang_microworks
 psql penang_microworks -f sql/00_create_tables.sql
 psql penang_microworks -f sql/01_load_data.sql
+
+# 3. Post the adjusting entries, then build the clean GL view
+psql penang_microworks -f sql/adjustments.sql
+psql penang_microworks -f sql/03_gl_actuals_clean.sql
 ```
 
 Run these from inside this folder, since the load script uses relative paths.

@@ -11,9 +11,9 @@
 --
 -- What each DQ issue needs:
 --   DQ1 Missing department  -> ADJ1 below
---   DQ2 Future-dated line   -> no adjustment: on hold in gl_exceptions
+--   DQ2 Future-dated line   -> no adjustment: left out of gl_actuals_clean
 --   DQ3 Duplicate line      -> ADJ2 below
---   DQ4 Missing fields      -> no adjustment: on hold in gl_exceptions
+--   DQ4 Missing fields      -> no adjustment: left out of gl_actuals_clean
 --   DQ5 Unmapped account    -> ADJ3 below
 --   DQ6 June marketing      -> no adjustment: genuine trade show
 --   DQ7 Revenue gap         -> no adjustment: explained by DQ3

@@ -432,7 +432,7 @@ Treatment: No separate adjustment needed. After DQ3 reversal, GL revenue ties to
 
 ## Wrap-up
 
-The rows on hold go into `gl_exceptions` with a reason and everything else into `gl_actuals_clean`. Every later question reads from `gl_actuals_clean`.
+After the adjusting entries in `sql/adjustments.sql`, `sql/03_gl_actuals_clean.sql` builds `gl_actuals_clean`: the GL minus the 3 lines on hold (DQ2 and DQ4). Every later question reads from `gl_actuals_clean`.
 
 ```
 | Check | Issue found | Rows | Treatment |
