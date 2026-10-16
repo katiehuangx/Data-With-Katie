@@ -284,11 +284,9 @@ ORDER BY actual_gross_margin_pct DESC;
 
 Total revenue is down by 3.5%, however gross profit fell by 8.2%, more than twice as much as revenue, driven by sensor modules and power modules. 
 
-**Sensor modules: Volume effect, not price**
+**Sensor modules: Volume problem, not price**
 
-Units fell about 11% and 11% respectively for both products while prices for SEN-100 increased by 0.22% from RM85.00 to RM85.19 and remained at RM120.00 for SEN-200. 
-
-We missed revenue by RM591,893 then deduct RM10,332, assuming the actual price per unit is RM85.00, the net effect is RM602,225. Total miss = price effect + volume effect -> 7,085 fewer units. 
+Units fell about 11% for both products while prices for SEN-100 increased by 0.22% from RM85.00 to RM85.19 and remained at RM120.00 for SEN-200. 
 
 | SEN-100, Q3 | RM |
 | --- | ---: |
@@ -335,7 +333,7 @@ SELECT
     total_budget_revenue,
     ROUND(100.0*(total_actual_units - total_budget_units)/total_budget_units,2) AS unit_var_pct,
     ROUND(100.0*(total_actual_revenue - total_budget_revenue)/total_budget_revenue,2) AS revenue_var_pct
-FROM sensor_modules AS sm;
+FROM sensor_modules;
 ```
 
 Sensor price vs. volume:
@@ -349,21 +347,19 @@ Sensor price vs. volume:
 
 </details>
 
-**Power modules: A margin problem**
+**Power modules: Price problem, not volume**
 
-Margin fell from 24.2% to 20.3%. 
+Power modules' margin fell from 24.2% to 20.3% driven by a negative price effect of RM472,015, partly offset by positive volume effect of RM64,170 for a net revenue miss of RM407,845.
 
-PWR-100 dropped its price by 5.22% (RM3.13 difference), but sold 1,522 more units. Did the price cut pay off? Net effect is a small revenue increase of RM4,763.86 (RM3.13 x 1,522 units).
+PWR-100 dropped its price by 5.22% (RM3.13 difference), but sold 1,522 more units. The price cut cost RM295,776.13, the extra volume brought back RM91,320.00, so the net effect was -RM204,456.13
 
-However for PWR-200, the price cut didn't pay off. It also sold at a lower price by 4.77% (RM7.16 difference), but sold 181 fewer units giving a negative effect: -RM1,295.96.
-
-The impact of the price difference is RM295,853.86 and RM176,272.04 respectively, loss of revenue which amounts to RM472,125.90.
+Similarly, PWR-200 lost on both price and volume. It also sold at a lower price by 4.77% (RM7.16 difference) and sold 181 fewer units giving a negative effect of RM176,238.72. Lower volume cost a further RM27,150.00, so the net effect was -RM203,388.72.
 
 | Q3 | PWR-100, RM | PWR-200, RM |
-| --- | --- | --- |
+| --- | ---: | ---: |
 | Total revenue miss | -204,456.13 | -203,388.72 | 
-| Price effect (RM3.13 lower) / (RM7.16 lower) | -RM295,776.13 | -RM176,238.72 |
-| Volume effect (1,522 more units × RM60) / (181 fewer units × RM150)| +RM91,320.00 | -RM27,150.00 |
+| Price effect (RM3.13 lower) / (RM7.16 lower) | -295,776.13 | -176,238.72 |
+| Volume effect (1,522 more units × RM60) / (181 fewer units × RM150)| +91,320.00 | -27,150.00 |
 
 <details>
 <summary>Show query: power modules price vs volume</summary>
@@ -404,11 +400,11 @@ SELECT
     total_budget_revenue,
     ROUND(100.0*(total_actual_units - total_budget_units)/total_budget_units,2) AS unit_var_pct,
     ROUND(100.0*(total_actual_revenue - total_budget_revenue)/total_budget_revenue,2) AS revenue_var_pct
-FROM sensor_modules AS sm;
+FROM power_modules;
 ```
 
-
-``` product_id | product_code |       product_name        | product_family | act_price_unit | total_actual_units | total_actual_revenue | budget_price_unit | total_budget_units | total_budget_revenue| unit_var_pct | revenue_var_pct 
+```
+product_id | product_code |       product_name        | product_family | act_price_unit | total_actual_units | total_actual_revenue | budget_price_unit | total_budget_units | total_budget_revenue| unit_var_pct | revenue_var_pct 
 ------------+--------------+---------------------------+----------------+----------------+--------------------+----------------------+-------------------+--------------------+----------------------+--------------+-----------------
           3 | PWR-100      | DC-DC converter module    | Power modules  |          56.87 |              94522 |           5375543.87 |             60.00 |              93000 |           5580000.00|         1.64 |           -3.66
           4 | PWR-200      | Battery management module | Power modules  |         142.84 |              24619 |           3516611.28 |            150.00 |              24800 |           3720000.00|        -0.73 |           -5.47
@@ -417,6 +413,11 @@ FROM sensor_modules AS sm;
 
 </details>
 
+**❓ Questions for Sales:**
+
+For sensor modules, I'd ask Sales whether the 11% volume drop is lost customers or orders delayed into Q4. 
+
+For power modules, I'd ask Sales who approved the price cut and the reasoning. Although PWR-100's volume increased, it wasn't enough to offset the losses from the price cut. Worth knowing whether it's a one-off discount or new price going forward.
 
 ### 3. Opex by Cost Center
 
