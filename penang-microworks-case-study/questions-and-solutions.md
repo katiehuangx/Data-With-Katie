@@ -231,11 +231,192 @@ When we drill down by product family, sensor modules alone missed by RM1.07m (-1
 Q1 showed revenue shifting away from sensor modules towards connectivity boards. Did that shift hurt profit more than the revenue figure suggests? Return product family, actual and budget gross profit, and actual and budget gross margin % (rounded to 1 decimal place).
 
 ```sql
+WITH actuals_gross AS (
+    SELECT
+        p.product_family,
+        -SUM(CASE WHEN a.account_type = 'Revenue' THEN g.amount END) AS actual_revenue,
+        SUM(CASE WHEN a.account_type = 'COGS' THEN g.amount END) AS actual_cogs
+    FROM gl_actuals_clean AS g
+    INNER JOIN accounts AS a
+        ON g.account_id = a.account_id
+    INNER JOIN products AS p
+        ON g.product_id = p.product_id
+    WHERE (month >= '2026-07-01' AND month <= '2026-09-30')
+    GROUP BY p.product_family
+)
+, budget_gross AS (
+    SELECT
+        p.product_family,
+        -SUM(CASE WHEN a.account_type = 'Revenue' THEN b.amount END) AS budget_revenue,
+        SUM(CASE WHEN a.account_type = 'COGS' THEN b.amount END) AS budget_cogs
+    FROM gl_budget AS b
+    INNER JOIN accounts AS a
+        ON b.account_id = a.account_id
+    INNER JOIN products AS p
+        ON b.product_id = p.product_id
+    WHERE (month >= '2026-07-01' AND month <= '2026-09-30')
+    GROUP BY p.product_family
+)
 
+SELECT 
+    ag.product_family,
+    ag.actual_revenue - ag.actual_cogs AS actual_gross_profit,
+    bg.budget_revenue - bg.budget_cogs AS budget_gross_profit,
+    ROUND(100.0*((ag.actual_revenue - ag.actual_cogs)/ag.actual_revenue),1) AS actual_gross_margin_pct,
+    ROUND(100.0*((bg.budget_revenue - bg.budget_cogs)/bg.budget_revenue),1) AS budget_gross_margin_pct
+FROM actuals_gross AS ag
+INNER JOIN budget_gross AS bg
+    ON ag.product_family = bg.product_family
+ORDER BY actual_gross_margin_pct DESC;
+```
+
+**✅ Result:**
+```
+   product_family    | actual_gross_profit | budget_gross_profit | actual_gross_margin_pct | budget_gross_margin_pct 
+---------------------+---------------------+---------------------+-------------------------+-------------------------
+ Sensor modules      |          3806220.51 |          4282960.00 |                    44.4 |                    44.4
+ Connectivity boards |          2344780.51 |          2134350.00 |                    34.4 |                    34.3
+ Power modules       |          1789055.37 |          2232000.00 |                    20.3 |                    24.2
+(3 rows)
+```
+
+**📊 Commentary:**
+
+Total revenue is down by 3.5%, however gross profit fell by 8.2%, more than twice as much as revenue, driven by sensor modules and power modules. 
+
+**Sensor modules: Volume effect, not price**
+
+Units fell about 11% and 11% respectively for both products while prices for SEN-100 increased by 0.22% from RM85.00 to RM85.19 and remained at RM120.00 for SEN-200. 
+
+We missed revenue by RM591,893 then deduct RM10,332, assuming the actual price per unit is RM85.00, the net effect is RM602,225. Total miss = price effect + volume effect -> 7,085 fewer units. 
+
+| SEN-100, Q3 | RM |
+| --- | ---: |
+| Total revenue miss | -591,893 |
+| Price effect (RM0.19 higher) | +10,332 |
+| Volume effect (7,085 fewer units × RM85) | -602,225 |
+
+<details>
+<summary>Show query: sensor modules price vs volume</summary>
+
+```sql
+WITH sensor_modules AS (
+    SELECT 
+        sv.product_id,
+        p.product_code,
+        p.product_name,
+        p.product_family,
+        SUM(sv.actual_units) AS total_actual_units,
+        SUM(sv.actual_revenue) AS total_actual_revenue,
+        SUM(sv.budget_units) AS total_budget_units,
+        SUM(sv.budget_revenue) AS total_budget_revenue
+    FROM sales_volume AS sv
+    INNER JOIN products AS p
+        ON sv.product_id = p.product_id
+    WHERE (month >= '2026-07-01' AND month <= '2026-09-30')
+        AND product_family = 'Sensor modules'
+    GROUP BY 
+        sv.product_id,
+        p.product_code,
+        p.product_name,
+        p.product_family
+)
+
+SELECT 
+    product_id,
+    product_code,
+    product_name,
+    product_family,
+    ROUND((total_actual_revenue/total_actual_units),2) AS act_price_unit,
+    total_actual_units,
+    total_actual_revenue,
+    ROUND((total_budget_revenue/total_budget_units),2) AS budget_price_unit,
+    total_budget_units,
+    total_budget_revenue,
+    ROUND(100.0*(total_actual_units - total_budget_units)/total_budget_units,2) AS unit_var_pct,
+    ROUND(100.0*(total_actual_revenue - total_budget_revenue)/total_budget_revenue,2) AS revenue_var_pct
+FROM sensor_modules AS sm;
+```
+
+Sensor price vs. volume:
+```
+ product_id | product_code |       product_name        | product_family | act_price_unit | total_actual_units | total_actual_revenue | budget_price_unit | total_budget_units | total_budget_revenue| unit_var_pct | revenue_var_pct 
+------------+--------------+---------------------------+----------------+----------------+--------------------+----------------------+-------------------+--------------------+----------------------+--------------+-----------------
+          1 | SEN-100      | Temperature sensor module | Sensor modules |          85.19 |              54915 |           4678107.09 |             85.00 |              62000 |           5270000.00|       -11.43 |          -11.23
+          2 | SEN-200      | Pressure sensor module    | Sensor modules |         120.00 |              33133 |           3975844.01 |            120.00 |              37200 |           4464000.00|       -10.93 |          -10.94
+(2 rows)
+```
+
+</details>
+
+**Power modules: A margin problem**
+
+Margin fell from 24.2% to 20.3%. 
+
+PWR-100 dropped its price by 5.22% (RM3.13 difference), but sold 1,522 more units. Did the price cut pay off? Net effect is a small revenue increase of RM4,763.86 (RM3.13 x 1,522 units).
+
+However for PWR-200, the price cut didn't pay off. It also sold at a lower price by 4.77% (RM7.16 difference), but sold 181 fewer units giving a negative effect: -RM1,295.96.
+
+The impact of the price difference is RM295,853.86 and RM176,272.04 respectively, loss of revenue which amounts to RM472,125.90.
+
+| Q3 | PWR-100, RM | PWR-200, RM |
+| --- | --- | --- |
+| Total revenue miss | -204,456.13 | -203,388.72 | 
+| Price effect (RM3.13 lower) / (RM7.16 lower) | -RM295,776.13 | -RM176,238.72 |
+| Volume effect (1,522 more units × RM60) / (181 fewer units × RM150)| +RM91,320.00 | -RM27,150.00 |
+
+<details>
+<summary>Show query: power modules price vs volume</summary>
+
+```sql
+WITH power_modules AS (
+    SELECT 
+        sv.product_id,
+        p.product_code,
+        p.product_name,
+        p.product_family,
+        SUM(sv.actual_units) AS total_actual_units,
+        SUM(sv.actual_revenue) AS total_actual_revenue,
+        SUM(sv.budget_units) AS total_budget_units,
+        SUM(sv.budget_revenue) AS total_budget_revenue
+    FROM sales_volume AS sv
+    INNER JOIN products AS p
+        ON sv.product_id = p.product_id
+    WHERE (month >= '2026-07-01' AND month <= '2026-09-30')
+        AND product_family = 'Power modules'
+    GROUP BY 
+        sv.product_id,
+        p.product_code,
+        p.product_name,
+        p.product_family
+)
+
+SELECT 
+    product_id,
+    product_code,
+    product_name,
+    product_family,
+    ROUND((total_actual_revenue/total_actual_units),2) AS act_price_unit,
+    total_actual_units,
+    total_actual_revenue,
+    ROUND((total_budget_revenue/total_budget_units),2) AS budget_price_unit,
+    total_budget_units,
+    total_budget_revenue,
+    ROUND(100.0*(total_actual_units - total_budget_units)/total_budget_units,2) AS unit_var_pct,
+    ROUND(100.0*(total_actual_revenue - total_budget_revenue)/total_budget_revenue,2) AS revenue_var_pct
+FROM sensor_modules AS sm;
 ```
 
 
-**✅ Result:**
+``` product_id | product_code |       product_name        | product_family | act_price_unit | total_actual_units | total_actual_revenue | budget_price_unit | total_budget_units | total_budget_revenue| unit_var_pct | revenue_var_pct 
+------------+--------------+---------------------------+----------------+----------------+--------------------+----------------------+-------------------+--------------------+----------------------+--------------+-----------------
+          3 | PWR-100      | DC-DC converter module    | Power modules  |          56.87 |              94522 |           5375543.87 |             60.00 |              93000 |           5580000.00|         1.64 |           -3.66
+          4 | PWR-200      | Battery management module | Power modules  |         142.84 |              24619 |           3516611.28 |            150.00 |              24800 |           3720000.00|        -0.73 |           -5.47
+(2 rows)
+```
+
+</details>
+
 
 ### 3. Opex by Cost Center
 
