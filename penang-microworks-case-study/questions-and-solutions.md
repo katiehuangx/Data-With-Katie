@@ -271,6 +271,7 @@ ORDER BY actual_gross_margin_pct DESC;
 ```
 
 **✅ Result:**
+Scroll right for more columns →
 ```
    product_family    | actual_gross_profit | budget_gross_profit | actual_gross_margin_pct | budget_gross_margin_pct 
 ---------------------+---------------------+---------------------+-------------------------+-------------------------
@@ -300,9 +301,7 @@ Units fell about 11% for both products while prices for SEN-100 increased by 0.2
 ```sql
 WITH sensor_modules AS (
     SELECT 
-        sv.product_id,
         p.product_code,
-        p.product_name,
         p.product_family,
         SUM(sv.actual_units) AS total_actual_units,
         SUM(sv.actual_revenue) AS total_actual_revenue,
@@ -314,16 +313,12 @@ WITH sensor_modules AS (
     WHERE (month >= '2026-07-01' AND month <= '2026-09-30')
         AND product_family = 'Sensor modules'
     GROUP BY 
-        sv.product_id,
         p.product_code,
-        p.product_name,
         p.product_family
 )
 
 SELECT 
-    product_id,
     product_code,
-    product_name,
     product_family,
     ROUND((total_actual_revenue/total_actual_units),2) AS act_price_unit,
     total_actual_units,
@@ -338,10 +333,10 @@ FROM sensor_modules;
 
 Sensor price vs. volume:
 ```
- product_id | product_code |       product_name        | product_family | act_price_unit | total_actual_units | total_actual_revenue | budget_price_unit | total_budget_units | total_budget_revenue| unit_var_pct | revenue_var_pct 
-------------+--------------+---------------------------+----------------+----------------+--------------------+----------------------+-------------------+--------------------+----------------------+--------------+-----------------
-          1 | SEN-100      | Temperature sensor module | Sensor modules |          85.19 |              54915 |           4678107.09 |             85.00 |              62000 |           5270000.00|       -11.43 |          -11.23
-          2 | SEN-200      | Pressure sensor module    | Sensor modules |         120.00 |              33133 |           3975844.01 |            120.00 |              37200 |           4464000.00|       -10.93 |          -10.94
+ product_code | product_family | act_price_unit | total_actual_units | total_actual_revenue | budget_price_unit | total_budget_units | total_budget_revenue | unit_var_pct | revenue_var_pct 
+--------------+----------------+----------------+--------------------+----------------------+-------------------+--------------------+----------------------+--------------+-----------------
+ SEN-100      | Sensor modules |          85.19 |              54915 |           4678107.09 |             85.00 |              62000 |           5270000.00 |  -11.43 |          -11.23
+ SEN-200      | Sensor modules |         120.00 |              33133 |           3975844.01 |            120.00 |              37200 |           4464000.00 |  -10.93 |          -10.94
 (2 rows)
 ```
 
@@ -367,9 +362,7 @@ Similarly, PWR-200 lost on both price and volume. It also sold at a lower price 
 ```sql
 WITH power_modules AS (
     SELECT 
-        sv.product_id,
         p.product_code,
-        p.product_name,
         p.product_family,
         SUM(sv.actual_units) AS total_actual_units,
         SUM(sv.actual_revenue) AS total_actual_revenue,
@@ -381,16 +374,12 @@ WITH power_modules AS (
     WHERE (month >= '2026-07-01' AND month <= '2026-09-30')
         AND product_family = 'Power modules'
     GROUP BY 
-        sv.product_id,
         p.product_code,
-        p.product_name,
         p.product_family
 )
 
 SELECT 
-    product_id,
     product_code,
-    product_name,
     product_family,
     ROUND((total_actual_revenue/total_actual_units),2) AS act_price_unit,
     total_actual_units,
@@ -404,10 +393,10 @@ FROM power_modules;
 ```
 
 ```
-product_id | product_code |       product_name        | product_family | act_price_unit | total_actual_units | total_actual_revenue | budget_price_unit | total_budget_units | total_budget_revenue| unit_var_pct | revenue_var_pct 
-------------+--------------+---------------------------+----------------+----------------+--------------------+----------------------+-------------------+--------------------+----------------------+--------------+-----------------
-          3 | PWR-100      | DC-DC converter module    | Power modules  |          56.87 |              94522 |           5375543.87 |             60.00 |              93000 |           5580000.00|         1.64 |           -3.66
-          4 | PWR-200      | Battery management module | Power modules  |         142.84 |              24619 |           3516611.28 |            150.00 |              24800 |           3720000.00|        -0.73 |           -5.47
+ product_code | product_family | act_price_unit | total_actual_units | total_actual_revenue | budget_price_unit | total_budget_units | total_budget_revenue | unit_var_pct | revenue_var_pct 
+--------------+----------------+----------------+--------------------+----------------------+-------------------+--------------------+----------------------+--------------+-----------------
+ PWR-100      | Power modules  |          56.87 |              94522 |           5375543.87 |             60.00 |              93000 |           5580000.00 |    1.64 |           -3.66
+ PWR-200      | Power modules  |         142.84 |              24619 |           3516611.28 |            150.00 |              24800 |           3720000.00 |   -0.73 |           -5.47
 (2 rows)
 ```
 
@@ -424,11 +413,58 @@ For power modules, I'd ask Sales who approved the price cut and the reasoning. A
 Which departments overspent in Q3? Return department name, actual opex, budget opex, variance (RM) and variance %, sorted by the biggest overspend first.
 
 ```sql
+-- Which departments overspent in Q3? Return department name, actual opex, budget opex, variance (RM) and variance %, sorted by the biggest overspend first.
 
+WITH actuals_opex AS (
+    SELECT 
+        d.department_name,
+        SUM(g.amount) AS actual_opex
+    FROM gl_actuals_clean AS g
+    INNER JOIN departments AS d
+        ON g.department_id = d.department_id
+    INNER JOIN accounts AS a
+        ON g.account_id = a.account_id
+    WHERE (g.month >= '2026-07-01' AND g.month <= '2026-09-30')
+        AND a.account_type = 'Opex'
+    GROUP BY d.department_name
+)
+, budget_opex AS (
+    SELECT 
+        d.department_name,
+        SUM(b.amount) AS budget_opex
+    FROM gl_budget AS b
+    INNER JOIN departments AS d
+        ON b.department_id = d.department_id
+    INNER JOIN accounts AS a
+        ON b.account_id = a.account_id
+    WHERE (b.month >= '2026-07-01' AND b.month <= '2026-09-30')
+        AND a.account_type = 'Opex'
+    GROUP BY d.department_name
+)
+
+SELECT
+    a.department_name,
+    actual_opex,
+    budget_opex,
+    budget_opex - actual_opex AS variance,
+    ROUND(100.0*(budget_opex - actual_opex)/budget_opex,1) AS variance_pct
+FROM actuals_opex AS a
+INNER JOIN budget_opex AS b
+    ON a.department_name = b.department_name
+ORDER BY variance ASC;
 ```
 
 
 **✅ Result:**
+```
+      department_name       | actual_opex | budget_opex |  variance  | variance_pct 
+----------------------------+-------------+-------------+------------+--------------
+ Engineering                |  2288901.79 |  2094600.00 | -194301.79 |         -9.3
+ General and Administrative |   872884.12 |   871920.00 |    -964.12 |         -0.1
+ Operations                 |   814546.77 |   817500.00 |    2953.23 |          0.4
+ Sales & Marketing          |   803056.07 |   815400.00 |   12343.93 |          1.5
+(4 rows)
+```
 
 ### 4. Monthly Trend
 
