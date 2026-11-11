@@ -272,6 +272,7 @@ ORDER BY actual_gross_margin_pct DESC;
 
 **✅ Result:**
 Scroll right for more columns →
+
 ```
    product_family    | actual_gross_profit | budget_gross_profit | actual_gross_margin_pct | budget_gross_margin_pct 
 ---------------------+---------------------+---------------------+-------------------------+-------------------------
@@ -302,7 +303,6 @@ Units fell about 11% for both products while prices for SEN-100 increased by 0.2
 WITH sensor_modules AS (
     SELECT 
         p.product_code,
-        p.product_family,
         SUM(sv.actual_units) AS total_actual_units,
         SUM(sv.actual_revenue) AS total_actual_revenue,
         SUM(sv.budget_units) AS total_budget_units,
@@ -319,7 +319,6 @@ WITH sensor_modules AS (
 
 SELECT 
     product_code,
-    product_family,
     ROUND((total_actual_revenue/total_actual_units),2) AS act_price_unit,
     total_actual_units,
     total_actual_revenue,
@@ -332,11 +331,12 @@ FROM sensor_modules;
 ```
 
 Sensor price vs. volume:
+Scroll right for more columns →
 ```
- product_code | product_family | act_price_unit | total_actual_units | total_actual_revenue | budget_price_unit | total_budget_units | total_budget_revenue | unit_var_pct | revenue_var_pct 
---------------+----------------+----------------+--------------------+----------------------+-------------------+--------------------+----------------------+--------------+-----------------
- SEN-100      | Sensor modules |          85.19 |              54915 |           4678107.09 |             85.00 |              62000 |           5270000.00 |  -11.43 |          -11.23
- SEN-200      | Sensor modules |         120.00 |              33133 |           3975844.01 |            120.00 |              37200 |           4464000.00 |  -10.93 |          -10.94
+ product_code | act_price_unit | total_actual_units | total_actual_revenue | budget_price_unit | total_budget_units | total_budget_revenue | unit_var_pct | revenue_var_pct 
+--------------+----------------+--------------------+----------------------+-------------------+--------------------+----------------------+--------------+-----------------
+ SEN-100      |          85.19 |              54915 |           4678107.09 |             85.00 |              62000 |           5270000.00 |       -11.43 |   -11.23
+ SEN-200      |         120.00 |              33133 |           3975844.01 |            120.00 |              37200 |           4464000.00 |       -10.93 |   -10.94
 (2 rows)
 ```
 
@@ -363,7 +363,6 @@ Similarly, PWR-200 lost on both price and volume. It also sold at a lower price 
 WITH power_modules AS (
     SELECT 
         p.product_code,
-        p.product_family,
         SUM(sv.actual_units) AS total_actual_units,
         SUM(sv.actual_revenue) AS total_actual_revenue,
         SUM(sv.budget_units) AS total_budget_units,
@@ -380,7 +379,6 @@ WITH power_modules AS (
 
 SELECT 
     product_code,
-    product_family,
     ROUND((total_actual_revenue/total_actual_units),2) AS act_price_unit,
     total_actual_units,
     total_actual_revenue,
@@ -392,11 +390,12 @@ SELECT
 FROM power_modules;
 ```
 
+Scroll right for more columns →
 ```
- product_code | product_family | act_price_unit | total_actual_units | total_actual_revenue | budget_price_unit | total_budget_units | total_budget_revenue | unit_var_pct | revenue_var_pct 
---------------+----------------+----------------+--------------------+----------------------+-------------------+--------------------+----------------------+--------------+-----------------
- PWR-100      | Power modules  |          56.87 |              94522 |           5375543.87 |             60.00 |              93000 |           5580000.00 |    1.64 |           -3.66
- PWR-200      | Power modules  |         142.84 |              24619 |           3516611.28 |            150.00 |              24800 |           3720000.00 |   -0.73 |           -5.47
+ product_code | act_price_unit | total_actual_units | total_actual_revenue | budget_price_unit | total_budget_units | total_budget_revenue | unit_var_pct | revenue_var_pct 
+--------------+----------------+--------------------+----------------------+-------------------+--------------------+----------------------+--------------+-----------------
+ PWR-100      |          56.87 |              94522 |           5375543.87 |             60.00 |              93000 |           5580000.00 |         1.64 |    -3.66
+ PWR-200      |         142.84 |              24619 |           3516611.28 |            150.00 |              24800 |           3720000.00 |        -0.73 |    -5.47
 (2 rows)
 ```
 
@@ -413,8 +412,6 @@ For power modules, I'd ask Sales who approved the price cut and the reasoning. A
 Which departments overspent in Q3? Return department name, actual opex, budget opex, variance (RM) and variance %, sorted by the biggest overspend first.
 
 ```sql
--- Which departments overspent in Q3? Return department name, actual opex, budget opex, variance (RM) and variance %, sorted by the biggest overspend first.
-
 WITH actuals_opex AS (
     SELECT 
         d.department_name,
@@ -454,7 +451,6 @@ INNER JOIN budget_opex AS b
 ORDER BY variance ASC;
 ```
 
-
 **✅ Result:**
 ```
       department_name       | actual_opex | budget_opex |  variance  | variance_pct 
@@ -465,6 +461,24 @@ ORDER BY variance ASC;
  Sales & Marketing          |   803056.07 |   815400.00 |   12343.93 |          1.5
 (4 rows)
 ```
+
+**📊 Commentary:**
+
+Engineering overspent by RM194k (9.3%) largely driven by staff cost overspending of RM178,423 making up 91.8% of the entire variance. Most of the rest is the software subscription RM18,500 (picked up in DQ5 in [data-quality.md](https://github.com/katiehuangx/Data-With-Katie/blob/main/penang-microworks-case-study/data-quality.md)). The RM18,500 wasn't in budget because account 6700 was new and had no budget line. That's why it shows up as a variance.
+
+General and Administrative overran budget by a small 0.1% whereas Operations and Sales & Marketing stayed close to their budget with a positive variance of 0.4% and 1.5% respectively. 
+
+| Department | Variance (RM) |
+| --- | ---: |
+| Engineering | -194,302 |
+| General and Administrative | -964 |
+| Operations | +2,953 |
+| Sales & Marketing | +12,344 |
+| **Total opex variance (net)** | **-179,969** |
+
+**❓ Questions to ask Engineering:**
+
+Is the overspend a one-off expense (e.g. overtime, contractor payments) or a recurring (e.g. new hire?). And if it's a new hire, to add the budget for following cycle. 
 
 ### 4. Monthly Trend
 
